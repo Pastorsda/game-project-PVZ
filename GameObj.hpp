@@ -17,7 +17,6 @@ public:
     virtual void draw(sf::RenderWindow& window) = 0;
 
     sf::FloatRect getBounds() const;
-
     bool getIsActive() const;
     void destroy();
     float getX() const;
