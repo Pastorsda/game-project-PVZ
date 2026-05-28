@@ -55,7 +55,7 @@ void Game::spawnZomb(float dt) {
 
 void Game::checkCollis(float dt) {
     std::vector<Plant*> activePlants;
-    std::vector<Enemy*> activeZombs;
+    std::vector<Zomb*> activeZombs;
 
     //sortowanie obiektów z głównego kontenera polimorficznego
     for (auto& obj : objects) {
@@ -64,7 +64,7 @@ void Game::checkCollis(float dt) {
         if (auto p = dynamic_cast<Plant*>(obj.get())) {
             activePlants.push_back(p);
         }
-        else if (auto z = dynamic_cast<Enemy*>(obj.get())) {
+        else if (auto z = dynamic_cast<Zomb*>(obj.get())) {
             activeZombs.push_back(z);
         }
     }
