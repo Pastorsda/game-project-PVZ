@@ -8,6 +8,17 @@
 Game::Game() : state(1), sunPool(150) {
     window.create(sf::VideoMode({1200,800}), "PVZ - test");
     window.setFramerateLimit(60);
+//texture loading with fallback
+if (!plantTexture.loadFromFile("textures/plant.png")) {
+    std::cout << "[WARN] plant.png not found. creating placeholder...\n";
+    plantTexture = createColorPlaceholder(60, 60, sf::Color::Green);
+}
+
+if (!zombTexture.loadFromFile("textures/zombie.png")) {
+    std::cout << "[WARN] zombie.png not found. creating placeholder...\n";
+    zombTexture = createColorPlaceholder(60, 80, sf::Color(139, 69, 19));
+}
+
 //grid inicialization
     for (int r = 0; r<5; ++r){
         for (int c = 0; c<9; ++c){
@@ -41,7 +52,7 @@ void Game::handleInput() {
         }
     }
 }
-//random number generator
+//random number generator & zomb iniciation
 void Game::spawnZomb(float dt) {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -49,6 +60,11 @@ void Game::spawnZomb(float dt) {
 
     int randomRow = rowDist(gen);
     float spawnY = rowPositions[randomRow];
+    float spawnX = 1200.0f;
+//create zombie object with texture x, y, texture, row, hp, speed, damage
+    auto newZomb = std::make_unique<Zomb>(spawnX, spawnY, zombTexture, randomRow, 100, 40.0f, 30);
+//push into safe buffer
+    spawnNewObject(std::move(newZomb));
 
     std::cout << "[SPAWNER TEST] Zombie in row: " << randomRow << "\n";
 }
@@ -108,6 +124,7 @@ checkCollis(dt);
     [](const std::unique_ptr<GameObject>& obj) { return !obj->getIsActive(); }),
     objects.end());
 }
+
 //grass green background
 void Game::render() {
     window.clear(sf::Color(34, 112, 34));
@@ -119,7 +136,17 @@ void Game::render() {
     
     window.display();
 }
+
 //entity buffer to prevent altering vectors actively processed
 void Game::spawnNewObject(std::unique_ptr<GameObject> newObj) {
     creationBuffer.push_back(std::move(newObj));
+}
+
+sf::Texture Game::createColorPlaceholder(unsigned int width, unsigned int height, sf::Color color) {
+    sf::Image image({width, height}, color);
+    sf::Texture tex;
+    if (!tex.loadFromImage(image)) {
+        std::cerr << "[ERROR] Failed to load from placeholder\n";
+    }
+    return tex;
 }

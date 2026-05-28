@@ -13,14 +13,19 @@ class Game {
 
     int state;
     int sunPool;
+//assets
+    sf::Texture plantTexture;
+    sf::Texture zombTexture;
+//y axis for rows
+    const float rowPositions[5] = {100.0f, 220.0f, 460.0f, 580.0f};
+//generating placeholder textures
+    sf::Texture createColorPlaceholder(unsigned int width, unsigned int height, sf::Color color);
 
     std::vector<std::unique_ptr<GameObject>> objects;
 
     std::vector<std::unique_ptr<GameObject>> creationBuffer;
 
     bool grid[5][9];
-
-    float rowPositions[5] = {150.0f, 270.0f, 390.0f, 510.0f, 630.0f};
 
     void handleInput();
     void update(float dt);
