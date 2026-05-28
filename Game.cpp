@@ -1,6 +1,7 @@
 #include "Game.hpp"
 #include "Plant.hpp"
 #include "Zomb.hpp"
+#include "Peashooter.hpp"
 #include <iostream>
 #include <random>
 #include <algorithm>
@@ -49,6 +50,37 @@ void Game::handleInput() {
     while (const std::optional<sf::Event> event = window.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
             window.close();
+        }
+        //mouse operations
+        if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>()) {
+            if (mouseClick->button == sf::Mouse::Button::Left) {
+                sf::Vector2i mousePos = mouseClick->position;
+                //change pixel into column
+                int clickedCol = (mousePos.x - 200) / 90;
+                int clickedRow = -1;
+                //change pixel into row
+                for (int r = 0; r < 5; ++r) {
+                    if (mousePos.y >= rowPositions[r] && mousePos.y <= rowPositions[r] + 80) {
+                        clickedRow = r;
+                        break;
+                    }
+                }
+                if (clickedRow >= 0 && clickedRow < 5 && clickedCol >= 0 && clickedCol < 9) {
+                    if (!grid[clickedRow][clickedCol] && sunPool >= 100) {
+                        //centered pixel position
+                        float plantX = 200.0f + clickedCol * 90.0f + 15.0f;
+                        float plantY = rowPositions[clickedRow] + 10.0f;
+                        //create peashooter
+                        auto newPlant = std::make_unique<Peashooter>(plantX, plantY, plantTexture, clickedRow);
+                        spawnNewObject(std::move(newPlant));
+                        //block spot and pay sun
+                        grid[clickedRow][clickedCol] = true;
+                        sunPool -= 100;
+
+                        std::cout << "[GRID] peashooter placed on space [" << clickedRow <<"]["<< clickedCol << "], Sun left: " << sunPool <<"\n";
+                    }
+                }
+            }
         }
     }
 }
@@ -117,6 +149,19 @@ checkCollis(dt);
             objects.push_back(std::move(newObj));
         }
         creationBuffer.clear();
+    }
+
+    //freeing space before plant deletion
+    for (auto& obj : objects) {
+        if (!obj->getIsActive()) {
+            if (auto p = dynamic_cast<Plant*>(obj.get())) {
+                int col = static_cast<int>((p->getX() - 200) / 90);
+                if (p->getRow() >= 0 && p->getRow() < 5 && col >= 0 && col < 9) {
+                    grid[p->getRow()][col] = false;
+                    std::cout << "[GRID] plant died space [" << p->getRow() << "][" << col << "] is now free\n";
+                }
+            }
+        }
     }
 
     //memory cleanup
