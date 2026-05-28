@@ -50,7 +50,7 @@ void Game::spawnZomb(float dt) {
     int randomRow = rowDist(gen);
     float spawnY = rowPositions[randomRow];
 
-    std::cout << "[SPAWNER TEST] Zombie w rzędzie: " << randomRow << "\n";
+    std::cout << "[SPAWNER TEST] Zombie in row: " << randomRow << "\n";
 }
 
 void Game::checkCollis(float dt) {
