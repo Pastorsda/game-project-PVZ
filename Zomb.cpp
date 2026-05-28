@@ -3,10 +3,7 @@
 #include <iostream>
 
 Zomb::Zomb(float startX, float startY, const sf::Texture& texture, int rowNum, int health, float moveSpeed, int atkPower)
-: GameObject(startX, startY, texture), hp(health), speed(moveSpeed), dmg(atkPower), row(rowNum), isEating(false) {
-//collision boundaries
-    width = 60.0f;
-    height = 80.0f;
+: GameObject(startX, startY, 60.0f, 60.0f), sprite(texture), hp(health), speed(moveSpeed), dmg(atkPower), row(rowNum), isEating(false) {
 //sprite underlying
     sprite.setPosition({x, y});
 }

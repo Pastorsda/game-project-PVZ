@@ -2,11 +2,7 @@
 #include <iostream>
 
 Plant::Plant(float startX, float startY, const sf::Texture& texture, int rowNum, int health, int price) 
-: GameObject(startX, startY, texture), hp(health), cost(price), cooldown(0.0f), row(rowNum), isReady(true) {
-//grid aligment
-    width = 60.0f;
-    height = 60.0f;
-}
+: GameObject(startX, startY, 60.0f, 60.0f), sprite(texture), hp(health), cost(price), cooldown(0.0f), row(rowNum), isReady(true) {}
 
 void Plant::takeDamage(int amount) {
     hp -= amount;

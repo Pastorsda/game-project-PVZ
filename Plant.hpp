@@ -8,6 +8,7 @@ protected:
     int hp, cost, row;
     float cooldown;
     bool isReady;
+    sf::Sprite sprite;
 
 public:
 //constructor

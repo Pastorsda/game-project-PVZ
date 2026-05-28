@@ -13,11 +13,12 @@ class Game {
 
     int state;
     int sunPool;
+    float sunTimer = 0.0f;
 //assets
     sf::Texture plantTexture;
     sf::Texture zombTexture;
 //y axis for rows
-    const float rowPositions[5] = {100.0f, 220.0f, 460.0f, 580.0f};
+    inline static const float rowPositions[5] = {100.0f, 220.0f, 460.0f, 580.0f};
 //generating placeholder textures
     sf::Texture createColorPlaceholder(unsigned int width, unsigned int height, sf::Color color);
 
@@ -37,6 +38,7 @@ class Game {
     Game();
     void run();
     void spawnNewObject(std::unique_ptr<GameObject> newObj);
+    bool isZombieInRow(int row) const;
 };
 
 #endif

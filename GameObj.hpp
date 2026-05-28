@@ -4,15 +4,12 @@
 #include <SFML/Graphics.hpp>
 
 class GameObject {
-    protected:
-
+protected:
     float x, y, width, height;
     bool isActive;
-    sf::Sprite sprite;
 
-    public:
-
-    GameObject(float startX, float startY, const sf::Texture& texture);
+public:
+    GameObject(float startX, float startY, float w = 0.0f, float h = 0.0f);
 
     virtual ~GameObject() = default;
 

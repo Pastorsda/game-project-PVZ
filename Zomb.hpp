@@ -11,6 +11,7 @@ protected:
     float speed;
     bool isEating;
     float damageBuffer = 0.0f; //prevents errors in calculation
+    sf::Sprite sprite;
 public:
     Zomb(float startX, float startY, const sf::Texture& texture, int rowNum, int health, float moveSpeed, int atkPower);
 //virtual deconstructor for proper cleanup
