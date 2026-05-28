@@ -11,15 +11,15 @@ int main() {
         Game game;
 
         std::cout << "[SYSTEM] Starting game loop";
-//turn gamin loop on
+//turn main loop on
         game.run();
     }
-    //common error catch
+    //standard error catch
     catch (const std::exception& e) {
         std::cerr << "[ERROR] Code: " << e.what() << "\n";
         return EXIT_FAILURE;
     }
-    //unnatural error catch
+    //untracked error catch
     catch(...) {
         std::cerr << "[ERROR] Unknown error\n";
         return EXIT_FAILURE;

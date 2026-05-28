@@ -8,7 +8,7 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "-std=c++17",
-                "${file}",
+                "${fileDirname}/*.cpp",
                 "-o",
                 "${workspaceFolder}/app.exe",
                 "-IC:/libs/SFML-3.0.2/include",
