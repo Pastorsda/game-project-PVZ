@@ -4,6 +4,7 @@
 #include "Peashooter.hpp"
 #include "Pea.hpp"
 #include "Sunflower.hpp"
+#include "Wallnut.hpp"
 #include "Sun.hpp"
 #include <iostream>
 #include <random>
@@ -22,6 +23,11 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     if (!sunflowerTexture.loadFromFile("textures/sunflower.png")) {
         std::cout << "[WARN] sunflower.png not found. creating placeholder...\n";
         sunflowerTexture = createColorPlaceholder(60, 60, sf::Color::Yellow);
+    }
+
+    if (!NutTexture.loadFromFile("textures/wallnut.png")) {
+        std::cout << "[WARN] wallnut.png not found. creating placeholder...\n";
+        NutTexture = createColorPlaceholder(60, 60, sf::Color(139, 169, 19));
     }
 
     if (!zombTexture.loadFromFile("textures/zombie.png")) {
@@ -57,6 +63,13 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     sunCard.setOutlineThickness(2.0f);
     sunCard.setOutlineColor(sf::Color::White);
 
+    //wallnutcard on ui
+    nutcard.setSize({80.0f, 60.0f});
+    nutcard.setPosition({380.0f, 10.0f});
+    nutcard.setFillColor(sf::Color(139, 69, 19));
+    nutcard.setOutlineThickness(2.0f);
+    nutcard.setOutlineColor(sf::Color::White);
+
     // Grid initialization
     for (int r = 0; r < 5; ++r) {
         for (int c = 0; c < 9; ++c) {
@@ -91,7 +104,7 @@ void Game::handleInput() {
             window.close();
         }
 
-        // 1. Zbieranie słońca przez najechanie myszką (Hover)
+        // hover over sun to get
         if (const auto* mouseMove = event->getIf<sf::Event::MouseMoved>()) {
             sf::Vector2f mousePosF(static_cast<float>(mouseMove->position.x), static_cast<float>(mouseMove->position.y));
 
@@ -108,7 +121,7 @@ void Game::handleInput() {
             }
         }
 
-        // 2. Kliknięcia myszy (Wybór kart i sadzenie)
+        // click events
         if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>()) {
             if (mouseClick->button == sf::Mouse::Button::Left) {
                 sf::Vector2i mousePos = mouseClick->position;
@@ -126,6 +139,12 @@ void Game::handleInput() {
                     std::cout << "[UI] picked: sunflower\n";
                     continue;
                 }
+                // select wallnut
+                else if (nutcard.getGlobalBounds().contains(mousePosF)) {
+                    currentSelection = SelectedPlant::Wallnut;
+                    std::cout << "[UI] picked: wallnut\n";
+                    continue;
+                }
 
                 // check mouse on grid
                 int clickedCol = (mousePos.x - 200) / 90;
@@ -139,7 +158,7 @@ void Game::handleInput() {
                     }
                 }
 
-                // checking grid i sadzenie
+                // checking grid and plant
                 if (clickedRow >= 0 && clickedRow < 5 && clickedCol >= 0 && clickedCol < 9) {
                     if (!grid[clickedRow][clickedCol]) {
                         // Centered pixel position
@@ -158,6 +177,15 @@ void Game::handleInput() {
                         // Create sunflower
                         else if (currentSelection == SelectedPlant::Sunflower && sunPool >= 50) {
                             auto newPlant = std::make_unique<Sunflower>(plantX, plantY, sunflowerTexture, clickedRow, *this);
+                            spawnNewObject(std::move(newPlant));
+
+                            grid[clickedRow][clickedCol] = true;
+                            sunPool -= 50;
+                            currentSelection = SelectedPlant::None;
+                        }
+                        // Create wallnut
+                        else if (currentSelection == SelectedPlant::Wallnut && sunPool >= 50) {
+                            auto newPlant = std::make_unique<Wallnut>(plantX, plantY, NutTexture, clickedRow);
                             spawnNewObject(std::move(newPlant));
 
                             grid[clickedRow][clickedCol] = true;
@@ -310,10 +338,13 @@ void Game::render() {
     // highlight selected
     peaCard.setOutlineColor(currentSelection == SelectedPlant::Peashooter ? sf::Color::Red : sf::Color::White);
     sunCard.setOutlineColor(currentSelection == SelectedPlant::Sunflower ? sf::Color::Red : sf::Color::White);
+    nutcard.setOutlineColor(currentSelection == SelectedPlant::Wallnut ? sf::Color::Red : sf::Color::White);
+
     
     // draw interface
     window.draw(peaCard);
     window.draw(sunCard);
+    window.draw(nutcard);
     
     // draw sun text
     sunText.setString("Sun: " + std::to_string(sunPool));

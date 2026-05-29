@@ -9,7 +9,8 @@
 enum class SelectedPlant {
     None,
     Peashooter,
-    Sunflower
+    Sunflower,
+    Wallnut
 };
 
 class Game {
@@ -24,6 +25,7 @@ class Game {
     sf::Texture plantTexture;
     sf::Texture zombTexture;
     sf::Texture sunflowerTexture;
+    sf::Texture NutTexture;
     sf::Texture peaTexture;
     sf::Texture sunTexture;
 //y axis for rows
@@ -48,6 +50,7 @@ class Game {
 
     sf::RectangleShape peaCard;
     sf::RectangleShape sunCard;
+    sf::RectangleShape nutcard;
 
     SelectedPlant currentSelection = SelectedPlant::None;
 
@@ -59,6 +62,7 @@ class Game {
     //getters
     const sf::Texture& getPlantTexture() const     { return plantTexture; }
     const sf::Texture& getSunflowerTexture() const { return sunflowerTexture; }
+    const sf::Texture& getNutTexture() const       { return NutTexture; }
     const sf::Texture& getPeaTexture() const       { return peaTexture; }
     const sf::Texture& getSunTexture() const       { return sunTexture; }
     const sf::Texture& getZombTexture() const      { return zombTexture; }
