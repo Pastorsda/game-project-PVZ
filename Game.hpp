@@ -6,6 +6,12 @@
 #include <memory>
 #include "GameObj.hpp"
 
+enum class SelectedPlant {
+    None,
+    Peashooter,
+    Sunflower
+};
+
 class Game {
     private:
     sf::RenderWindow window;
@@ -18,7 +24,7 @@ class Game {
     sf::Texture plantTexture;
     sf::Texture zombTexture;
 //y axis for rows
-    inline static const float rowPositions[5] = {100.0f, 220.0f, 460.0f, 580.0f};
+    inline static const float rowPositions[5] = {140.0f, 250.0f, 360.0f, 470.0f, 580.0f};
 //generating placeholder textures
     sf::Texture createColorPlaceholder(unsigned int width, unsigned int height, sf::Color color);
 
@@ -33,6 +39,14 @@ class Game {
     void render();
     void spawnZomb(float dt);
     void checkCollis(float dt);
+
+    sf::Font font;
+    sf::Text sunText;
+
+    sf::RectangleShape peaCard;
+    sf::RectangleShape sunCard;
+
+    SelectedPlant currentSelection = SelectedPlant::None;
 
     public:
     Game();

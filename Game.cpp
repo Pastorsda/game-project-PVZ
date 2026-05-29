@@ -7,7 +7,7 @@
 #include <random>
 #include <algorithm>
 
-Game::Game() : state(1), sunPool(150), sunTimer(0.0f) {
+Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font) {
     window.create(sf::VideoMode({1200, 800}), "PVZ - test");
     window.setFramerateLimit(60);
 
@@ -21,6 +21,23 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f) {
         std::cout << "[WARN] zombie.png not found. creating placeholder...\n";
         zombTexture = createColorPlaceholder(60, 80, sf::Color(139, 69, 19));
     }
+
+    if (!font.openFromFile("C:/Windows/Fonts/arial.ttf")) {
+        std::cout << "[Warn] arail.tft not found. Sun not visible";
+    }
+
+//peacard on ui
+    peaCard.setSize({80.0f, 60.0f});
+    peaCard.setPosition({200.0f, 10.0f});
+    peaCard.setFillColor(sf::Color(0, 150, 0));
+    peaCard.setOutlineThickness(2.0f);
+    peaCard.setOutlineColor(sf::Color::White);
+//suncard on ui
+    sunCard.setSize({80.0f, 60.0f});
+    sunCard.setPosition({290.0f, 10.0f}); // Obok karty Peashootera
+    sunCard.setFillColor(sf::Color(200, 200, 0)); // Ciemnożółty
+    sunCard.setOutlineThickness(2.0f);
+    sunCard.setOutlineColor(sf::Color::White);
 
     // Grid initialization
     for (int r = 0; r < 5; ++r) {
@@ -60,8 +77,21 @@ void Game::handleInput() {
         if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>()) {
             if (mouseClick->button == sf::Mouse::Button::Left) {
                 sf::Vector2i mousePos = mouseClick->position;
+                sf::Vector2f mousePosF(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
+                //select peashooter
+                if (peaCard.getGlobalBounds().contains(mousePosF)) {
+                    currentSelection = SelectedPlant::Peashooter;
+                    std::cout << "[UI] picked: peashooter\n";
+                    return;
+                }
+                //select sunflower
+                else if (sunCard.getGlobalBounds().contains(mousePosF)) {
+                    currentSelection = SelectedPlant::Sunflower;
+                    std::cout << "[UI] picked: sunflower\n";
+                    return;
+                }
 
-                // Change pixel into column
+                // check mouse on grid
                 int clickedCol = (mousePos.x - 200) / 90;
                 int clickedRow = -1;
 
@@ -75,20 +105,29 @@ void Game::handleInput() {
 
                 // checking grid
                 if (clickedRow >= 0 && clickedRow < 5 && clickedCol >= 0 && clickedCol < 9) {
-                    if (!grid[clickedRow][clickedCol] && sunPool >= 100) {
+                    if (!grid[clickedRow][clickedCol]) {
                         // Centered pixel position
                         float plantX = 200.0f + clickedCol * 90.0f + 15.0f;
                         float plantY = rowPositions[clickedRow] + 10.0f;
 
-                        // Create peashooter and buffor
-                        auto newPlant = std::make_unique<Peashooter>(plantX, plantY, plantTexture, clickedRow, *this);
-                        spawnNewObject(std::move(newPlant));
+                        // Create peashooter
+                        if (currentSelection == SelectedPlant::Peashooter && sunPool >= 100) {
+                            auto newPlant = std::make_unique<Peashooter>(plantX, plantY, plantTexture, clickedRow, *this);
+                            spawnNewObject(std::move(newPlant));
 
-                        // Block spot and pay sun
-                        grid[clickedRow][clickedCol] = true;
-                        sunPool -= 100;
+                            grid[clickedRow][clickedCol] = true;
+                            sunPool -= 100;
+                            currentSelection = SelectedPlant::None;
+                        }
+                        // Create sunflower
+                        // if (currentSelection == SelectedPlant::Sunflower && sunPool >= 50) {
+                        //     auto newPlant = std::make_unique<Sunflower>(plantX, plantY, plantTexture, clickedRow, *this);
+                        //     spawnNewObject(std::move(newPlant));
 
-                        std::cout << "[GRID] Peashooter placed on space [" << clickedRow << "][" << clickedCol << "], Sun left: " << sunPool << "\n";
+                        //     grid[clickedRow][clickedCol] = true;
+                        //     sunPool -= 50;
+                        //     currentSelection = SelectedPlant::None;
+                        // }
                     }
                 }
             }
@@ -212,6 +251,16 @@ void Game::render() {
     for (auto& obj : objects) {
         obj->draw(window);
     }
+
+    // highlith selected
+    peaCard.setOutlineColor(currentSelection == SelectedPlant::Peashooter ? sf::Color::Red : sf::Color::White);
+    //sunCard.setOutlineColor(currentSelection == SelectedPlant::Peashooter ? sf::Color::Red : sf::Color::White);
+    //draw interface
+    window.draw(peaCard);
+    window.draw(sunCard);
+    //draw sun
+    sunText.setString("Sun: " + std::to_string(sunPool));
+    window.draw(sunText);
 
     window.display();
 }

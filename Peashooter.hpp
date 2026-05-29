@@ -15,7 +15,7 @@ class Peashooter : public Plant {
     Game& gameContext;
     public:
     Peashooter(float startX, float startY, const sf::Texture& texture, int rowNum, Game& game)
-    : Plant(startX, startY, texture, rowNum, 300, 100), shootTimer(0.0f), gameContext(game){
+    : Plant(startX, startY, texture, rowNum, 100, 100), shootTimer(0.0f), gameContext(game){
         sprite.setPosition({x, y});
     }
 
