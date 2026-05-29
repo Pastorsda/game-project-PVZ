@@ -35,6 +35,19 @@ public:
         }
     }
 
+    sf::FloatRect getBounds() const {
+    sf::FloatRect bounds = sprite.getGlobalBounds();
+    
+    // bigger hitbox for collecting QoL
+    float padding = 20.0f;
+    bounds.position.x -= padding;
+    bounds.position.y -= padding;
+    bounds.size.x += padding * 2.0f;
+    bounds.size.y += padding * 2.0f;
+    
+    return bounds;
+    }
+
     void update(float dt) override {
         if (!isActive) return;
 
