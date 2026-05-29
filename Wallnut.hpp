@@ -6,7 +6,7 @@
 class Wallnut : public Plant {
 public:
     Wallnut(float startX, float startY, const sf::Texture& texture, int rowNum)
-    : Plant(startX, startY, texture, rowNum, 1000, 50) { // Dużo HP (1000), niska cena (50)
+    : Plant(startX, startY, texture, rowNum, 1000, 50) {
         sprite.setPosition({x, y});
     }
 

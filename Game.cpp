@@ -27,7 +27,7 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
 
     if (!NutTexture.loadFromFile("textures/wallnut.png")) {
         std::cout << "[WARN] wallnut.png not found. creating placeholder...\n";
-        NutTexture = createColorPlaceholder(60, 60, sf::Color(139, 169, 19));
+        NutTexture = createColorPlaceholder(60, 60, sf::Color(120, 80, 15));
     }
 
     if (!zombTexture.loadFromFile("textures/zombie.png")) {
@@ -66,7 +66,7 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     //wallnutcard on ui
     nutcard.setSize({80.0f, 60.0f});
     nutcard.setPosition({380.0f, 10.0f});
-    nutcard.setFillColor(sf::Color(139, 69, 19));
+    nutcard.setFillColor(sf::Color(120, 80, 15));
     nutcard.setOutlineThickness(2.0f);
     nutcard.setOutlineColor(sf::Color::White);
 
