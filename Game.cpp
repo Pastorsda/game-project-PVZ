@@ -240,9 +240,19 @@ void Game::update(float dt) {
     // passive sun
     sunTimer += dt;
     if (sunTimer >= 8.0f) {
-        sunPool += 25;
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        // random pos for falling sun
+        std::uniform_real_distribution<float> xDist(200.0f, 1000.0f);
+        
+        float spawnX = xDist(gen);
+        float spawnY = -50.0f;
+
+        auto newSun = std::make_unique<Sun>(spawnX, spawnY, sunTexture, true);
+        spawnNewObject(std::move(newSun));
+
         sunTimer = 0.0f;
-        std::cout << "[SUN] Sun fell from the sky! Current sun: " << sunPool << "\n";
+        std::cout << "[SUN SPAWNER] Sun spawned from the sky at X: " << spawnX << "\n";
     }
 
     // Dynamic polymorphic updater

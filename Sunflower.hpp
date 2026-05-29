@@ -8,15 +8,16 @@
 #include <memory>
 
 class Game;
+
 class Sunflower : public Plant {
     private:
     float sunTimer;
-    Game& gamecontext;
+    Game& gameContext;
     const float spawnInterval = 10.0f;
 
     public:
     Sunflower(float startX, float startY, const sf::Texture& texture, int rowNum, Game& game)
-    : Plant(startX, startY, texture, rowNum, 100, 100), sunTimer(0.0f), gamecontext(game) {
+    : Plant(startX, startY, texture, rowNum, 100, 100), sunTimer(0.0f), gameContext(game) {
         sprite.setPosition({x, y});
     }
     void update(float dt) override {
@@ -34,9 +35,9 @@ class Sunflower : public Plant {
         float sunX = x + 30.0f;
         float sunY = y - 20.0f;
 
-        auto newSun = std::make_unique<Sun>(sunX, sunY, gamecontext.getSunTexture());
+        auto newSun = std::make_unique<Sun>(sunX, sunY, gameContext.getSunTexture(), false);
 
-        gamecontext.spawnNewObject(std::move(newSun));
+        gameContext.spawnNewObject(std::move(newSun));
     }
     void draw(sf::RenderWindow& window) override {
         if (isActive) window.draw(sprite);
