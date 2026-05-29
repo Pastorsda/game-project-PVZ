@@ -46,8 +46,14 @@ public:
         else {
             // sun arrived on spot
             lifetime += dt;
-            if (lifetime >= maxlifetime) {
-                destroy();
+
+            if (lifetime >= maxlifetime - 2.0f) {
+            float timeLeft = maxlifetime - lifetime;
+            // Przeliczamy czas na wartość alfa (od 255 do 0)
+            // Używamy std::max, żeby nigdy nie wyszło poniżej 0
+            float alpha = std::max(0.0f, (timeLeft / 2.0f) * 255.0f);
+            
+            sprite.setColor(sf::Color(255, 255, 255, static_cast<int>(alpha)));
             }
         }
     }
