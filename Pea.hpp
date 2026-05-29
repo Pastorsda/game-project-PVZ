@@ -8,27 +8,28 @@ private:
     float speed;
     int damage;
     int row;
-    sf::CircleShape shape;
+    sf::Sprite sprite;
 
 public:
-    Pea(float startX, float startY, int rowNum, int dmg = 20, float spd = 350.0f)
-        : GameObject(startX, startY, 16.0f, 16.0f), speed(spd), damage(dmg), row(rowNum) {
+    Pea(float startX, float startY, int rowNum, const sf::Texture& tex, int dmg = 20, float spd = 350.0f)
+        : GameObject(startX, startY, 16.0f, 16.0f), sprite(tex), speed(spd), damage(dmg), row(rowNum) {
 
         width = 16.0f;
         height = 16.0f;
         isActive = true;
         
         //pea sprite
-        shape.setRadius(8.0f);
-        shape.setFillColor(sf::Color(50, 205, 50));
-        shape.setPosition({x, y});
+        sprite.setTexture(tex);
+        sprite.setPosition({x, y});
+        //centering origin
+        sf::FloatRect bounds = sprite.getLocalBounds();
+        sprite.setOrigin({bounds.size.x / 2.0f, bounds.size.y / 2.0f});
         }
-
     void update(float dt) override {
         if (!isActive) return;
 
         x += speed * dt;
-        shape.setPosition({x, y});
+        sprite.setPosition({x, y});
 
         if (x > 1200.0f) {
             destroy();
@@ -37,7 +38,7 @@ public:
 
     void draw(sf::RenderWindow& window) override {
         if (isActive) {
-            window.draw(shape);
+            window.draw(sprite);
         }
     }
 

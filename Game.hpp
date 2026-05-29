@@ -23,6 +23,9 @@ class Game {
 //assets
     sf::Texture plantTexture;
     sf::Texture zombTexture;
+    sf::Texture sunflowerTexture;
+    sf::Texture peaTexture;
+    sf::Texture sunTexture;
 //y axis for rows
     inline static const float rowPositions[5] = {140.0f, 250.0f, 360.0f, 470.0f, 580.0f};
 //generating placeholder textures
@@ -53,6 +56,12 @@ class Game {
     void run();
     void spawnNewObject(std::unique_ptr<GameObject> newObj);
     bool isZombieInRow(int row) const;
+    //getters
+    const sf::Texture& getPlantTexture() const     { return plantTexture; }
+    const sf::Texture& getSunflowerTexture() const { return sunflowerTexture; }
+    const sf::Texture& getPeaTexture() const       { return peaTexture; }
+    const sf::Texture& getSunTexture() const       { return sunTexture; }
+    const sf::Texture& getZombTexture() const      { return zombTexture; }
 };
 
 #endif

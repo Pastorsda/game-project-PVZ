@@ -36,7 +36,7 @@ class Peashooter : public Plant {
         float peaX = x + 50.0f;
         float peaY = y + 15.0f;
 
-        auto newPea = std::make_unique<Pea>(peaX, peaY, row);
+        auto newPea = std::make_unique<Pea>(peaX, peaY, row, gameContext.getPeaTexture());
         gameContext.spawnNewObject(std::move(newPea));
     }
 
