@@ -216,6 +216,14 @@ void Game::update(float dt) {
 
     // Intersection evaluation
     checkCollis(dt);
+    //delete zombs that left
+    for (auto& obj : objects) {
+    if (auto z = dynamic_cast<Zomb*>(obj.get())) {
+        if (z->getX() < 0.0f) { 
+            z->destroy();       
+            }
+        }
+    }
 
     // Asset buffering conversion
     if (!creationBuffer.empty()) {
