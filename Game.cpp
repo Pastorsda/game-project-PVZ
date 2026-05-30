@@ -142,26 +142,42 @@ void Game::handleInput() {
                 
                 // select peashooter
                 if (peaCard.getGlobalBounds().contains(mousePosF)) {
-                    currentSelection = SelectedPlant::Peashooter;
-                    std::cout << "[UI] picked: peashooter\n";
+                    if (peaCooldown <= 0.0f) { 
+                        currentSelection = SelectedPlant::Peashooter;
+                        std::cout << "[UI] picked: peashooter\n";
+                    } else {
+                        std::cout << "[UI] Peashooter is recharging! Wait " << std::to_string(peaCooldown) << "s\n";
+                    }
                     continue;
                 }
                 // select sunflower
                 else if (sunCard.getGlobalBounds().contains(mousePosF)) {
-                    currentSelection = SelectedPlant::Sunflower;
-                    std::cout << "[UI] picked: sunflower\n";
+                    if (sunCooldown <= 0.0f) { 
+                        currentSelection = SelectedPlant::Sunflower;
+                        std::cout << "[UI] picked: sunflower\n";
+                    } else {
+                        std::cout << "[UI] Sunflower is recharging!\n";
+                    }
                     continue;
                 }
                 // select wallnut
                 else if (nutcard.getGlobalBounds().contains(mousePosF)) {
-                    currentSelection = SelectedPlant::Wallnut;
-                    std::cout << "[UI] picked: wallnut\n";
+                    if (nutCooldown <= 0.0f) { 
+                        currentSelection = SelectedPlant::Wallnut;
+                        std::cout << "[UI] picked: wallnut\n";
+                    } else {
+                        std::cout << "[UI] Wallnut is recharging!\n";
+                    }
                     continue;
                 }
                 // select cherry bomb
                 else if (cherrycard.getGlobalBounds().contains(mousePosF)) {
-                    currentSelection = SelectedPlant::Cherry;
-                    std::cout << "[UI] picked: cherry\n";
+                    if (cherryCooldown <= 0.0f) { 
+                        currentSelection = SelectedPlant::Cherry;
+                        std::cout << "[UI] picked: cherry\n";
+                    } else {
+                        std::cout << "[UI] Cherry Bomb is recharging!\n";
+                    }
                     continue;
                 }
 
@@ -191,6 +207,7 @@ void Game::handleInput() {
 
                             grid[clickedRow][clickedCol] = true;
                             sunPool -= 100;
+                            peaCooldown = PEA_COOLDOWN_MAX;
                             currentSelection = SelectedPlant::None;
                         }
                         // Create sunflower
@@ -200,6 +217,7 @@ void Game::handleInput() {
 
                             grid[clickedRow][clickedCol] = true;
                             sunPool -= 50;
+                            sunCooldown = SUN_COOLDOWN_MAX;
                             currentSelection = SelectedPlant::None;
                         }
                         // Create wallnut
@@ -209,6 +227,7 @@ void Game::handleInput() {
 
                             grid[clickedRow][clickedCol] = true;
                             sunPool -= 50;
+                            nutCooldown = NUT_COOLDOWN_MAX;
                             currentSelection = SelectedPlant::None;
                         }
                         // Create cherry
@@ -218,6 +237,7 @@ void Game::handleInput() {
 
                             grid[clickedRow][clickedCol] = true;
                             sunPool -= 150;
+                            cherryCooldown = CHERRY_COOLDOWN_MAX;
                             currentSelection = SelectedPlant::None;
                         }
                     }
@@ -314,6 +334,11 @@ void Game::checkCollis(float dt) {
 }
 
 void Game::update(float dt) {
+    // plants cooldown
+    if (peaCooldown > 0.0f) peaCooldown -= dt;
+    if (sunCooldown > 0.0f) sunCooldown -= dt;
+    if (nutCooldown > 0.0f) nutCooldown -= dt;
+    if (cherryCooldown > 0.0f) cherryCooldown -= dt;
     // passive sun
     sunTimer += dt;
     if (sunTimer >= 8.0f) {
@@ -383,6 +408,11 @@ void Game::render() {
     for (auto& obj : objects) {
         obj->draw(window);
     }
+    // cooldown plant colour
+    peaCard.setFillColor(peaCooldown > 0.0f ? sf::Color(0, 60, 0) : sf::Color(0, 150, 0));
+    sunCard.setFillColor(sunCooldown > 0.0f ? sf::Color(90, 90, 0) : sf::Color(200, 200, 0));
+    nutcard.setFillColor(nutCooldown > 0.0f ? sf::Color(50, 35, 5) : sf::Color(120, 80, 15));
+    cherrycard.setFillColor(cherryCooldown > 0.0f ? sf::Color(80, 0, 0) : sf::Color(200, 0, 0));
 
     // highlight selected
     peaCard.setOutlineColor(currentSelection == SelectedPlant::Peashooter ? sf::Color::Red : sf::Color::White);

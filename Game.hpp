@@ -30,6 +30,17 @@ class Game {
     sf::Texture cherryTexture;
     sf::Texture peaTexture;
     sf::Texture sunTexture;
+
+//plant cooldowns
+    float peaCooldown = 0.0f;
+    float sunCooldown = 0.0f;
+    float nutCooldown = 0.0f;
+    float cherryCooldown = 0.0f;
+
+    inline static const float PEA_COOLDOWN_MAX = 7.5f;
+    inline static const float SUN_COOLDOWN_MAX = 7.5f;
+    inline static const float NUT_COOLDOWN_MAX = 20.0f;
+    inline static const float CHERRY_COOLDOWN_MAX = 30.0f;
 //y axis for rows
     inline static const float rowPositions[5] = {140.0f, 250.0f, 360.0f, 470.0f, 580.0f};
 //generating placeholder textures
