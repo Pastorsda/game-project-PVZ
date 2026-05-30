@@ -5,6 +5,7 @@
 #include "Pea.hpp"
 #include "Sunflower.hpp"
 #include "Wallnut.hpp"
+#include "Cherry.hpp"
 #include "Sun.hpp"
 #include <iostream>
 #include <random>
@@ -28,6 +29,11 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     if (!NutTexture.loadFromFile("textures/wallnut.png")) {
         std::cout << "[WARN] wallnut.png not found. creating placeholder...\n";
         NutTexture = createColorPlaceholder(60, 60, sf::Color(120, 80, 15));
+    }
+
+    if (!cherryTexture.loadFromFile("textures/cherry.png")){
+        std::cout << "[WARN] cherry.png not found. creating placeholder...\n";
+        cherryTexture = createColorPlaceholder(60, 60, sf::Color::Red);
     }
 
     if (!zombTexture.loadFromFile("textures/zombie.png")) {
@@ -69,6 +75,13 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     nutcard.setFillColor(sf::Color(120, 80, 15));
     nutcard.setOutlineThickness(2.0f);
     nutcard.setOutlineColor(sf::Color::White);
+
+    //cherrycard on ui
+    cherrycard.setSize({80.0f, 60.0f});
+    cherrycard.setPosition({470.0f, 10.0f});
+    cherrycard.setFillColor(sf::Color(200, 0, 0));
+    cherrycard.setOutlineThickness(2.0f);
+    cherrycard.setOutlineColor(sf::Color::White);
 
     // Grid initialization
     for (int r = 0; r < 5; ++r) {
@@ -145,9 +158,15 @@ void Game::handleInput() {
                     std::cout << "[UI] picked: wallnut\n";
                     continue;
                 }
+                // select cherry bomb
+                else if (cherrycard.getGlobalBounds().contains(mousePosF)) {
+                    currentSelection = SelectedPlant::Cherry;
+                    std::cout << "[UI] picked: cherry\n";
+                    continue;
+                }
 
                 // check mouse on grid
-                int clickedCol = (mousePos.x - 200) / 90;
+                int clickedCol = (mousePos.x >= 200) ? (mousePos.x - 200) / 90 : -1;
                 int clickedRow = -1;
 
                 // Change pixel into row
@@ -192,6 +211,15 @@ void Game::handleInput() {
                             sunPool -= 50;
                             currentSelection = SelectedPlant::None;
                         }
+                        // Create cherry
+                        else if (currentSelection == SelectedPlant::Cherry && sunPool >= 150) {
+                            auto newPlant = std::make_unique<Cherry>(plantX, plantY, cherryTexture, clickedRow);
+                            spawnNewObject(std::move(newPlant));
+
+                            grid[clickedRow][clickedCol] = true;
+                            sunPool -= 150;
+                            currentSelection = SelectedPlant::None;
+                        }
                     }
                 }
             }
@@ -220,12 +248,17 @@ void Game::checkCollis(float dt) {
     std::vector<Plant*> activePlants;
     std::vector<Zomb*> activeZombs;
     std::vector<Pea*> activePeas;
+    std::vector<Cherry*> activeCherries;
 
     // Polymorphic cast safe filter for abstract base objects
     for (auto& obj : objects) {
         if (!obj->getIsActive()) continue;
 
-        if (auto p = dynamic_cast<Plant*>(obj.get())) {
+        if (auto c = dynamic_cast<Cherry*>(obj.get())) {
+            activeCherries.push_back(c);
+            activePlants.push_back(c);
+        }
+        else if (auto p = dynamic_cast<Plant*>(obj.get())) {
             activePlants.push_back(p);
         }
         else if (auto z = dynamic_cast<Zomb*>(obj.get())) {
@@ -236,6 +269,22 @@ void Game::checkCollis(float dt) {
         }
     }
 
+    for (auto* c : activeCherries) {
+        if (c->isReadyToExplode()) {
+            std::cout << "[BOOM]\n";
+            for (auto* z : activeZombs) {
+                //check if in 3x3 radius
+                if (std::abs(z->getRow() - c->getRow()) <= 1) {
+                //check distance in pixels
+                float distX = std::abs(z->getX() - c->getX());
+                if (distX <= 180.0f) {
+                    z->takeDamage(200);
+                    }
+                }
+            }
+            c->destroy();
+        }
+    }
     // Lane based collision (Zombie eats Plant)
     for (auto* z : activeZombs) {
         bool zombieEats = false;
@@ -339,12 +388,14 @@ void Game::render() {
     peaCard.setOutlineColor(currentSelection == SelectedPlant::Peashooter ? sf::Color::Red : sf::Color::White);
     sunCard.setOutlineColor(currentSelection == SelectedPlant::Sunflower ? sf::Color::Red : sf::Color::White);
     nutcard.setOutlineColor(currentSelection == SelectedPlant::Wallnut ? sf::Color::Red : sf::Color::White);
+    cherrycard.setOutlineColor(currentSelection == SelectedPlant::Cherry ? sf::Color::Red : sf::Color::White);
 
     
     // draw interface
     window.draw(peaCard);
     window.draw(sunCard);
     window.draw(nutcard);
+    window.draw(cherrycard);
     
     // draw sun text
     sunText.setString("Sun: " + std::to_string(sunPool));
