@@ -11,7 +11,7 @@
 #include <random>
 #include <algorithm>
 
-Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font) {
+Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font), gameOverText(font) {
     window.create(sf::VideoMode({1200, 800}), "PVZ - test");
     window.setFramerateLimit(60);
 
@@ -89,6 +89,14 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
             grid[r][c] = false;
         }
     }
+
+    //end of game initiation
+    gameOverText.setFont(font);
+    gameOverText.setString("GAME OVER\nPress R to start again");
+    gameOverText.setCharacterSize(50);
+    gameOverText.setFillColor(sf::Color::Red);
+    gameOverText.setStyle(sf::Text::Bold);
+    gameOverText.setPosition({350.0f, 350.0f});
 }
 
 void Game::run() {
@@ -99,11 +107,13 @@ void Game::run() {
         // Frame time computing
         float dt = clock.restart().asSeconds();
 
-        // Spawn countdown loop
-        zombtimer += dt;
-        if (zombtimer >= 6.0f) {
-            spawnZomb(dt);
-            zombtimer = 0.0f;
+        // Spawn countdown loop - only when game is active
+        if (state == 1) {
+            zombtimer += dt;
+            if (zombtimer >= 6.0f) {
+                spawnZomb(dt);
+                zombtimer = 0.0f;
+            }
         }
 
         update(dt);
@@ -115,6 +125,32 @@ void Game::handleInput() {
     while (const std::optional<sf::Event> event = window.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
             window.close();
+        }
+        // Game end
+        if (state == 2) {
+            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                if (keyPressed->code == sf::Keyboard::Key::R) {
+                    // Reset to start values
+                    state = 1;
+                    sunPool = 150;
+                    sunTimer = 0.0f;
+                    currentSelection = SelectedPlant::None;
+                    objects.clear();
+                    creationBuffer.clear();
+                    peaCooldown = 0.0f;
+                    sunCooldown = 0.0f;
+                    nutCooldown = 0.0f;
+                    cherryCooldown = 0.0f;
+                    
+                    for (int r = 0; r < 5; ++r) {
+                        for (int c = 0; c < 9; ++c) {
+                            grid[r][c] = false;
+                        }
+                    }
+                    std::cout << "[GAME] Game Restarted\n";
+                }
+            }
+            continue; // Przeskakujemy resztę zdarzeń (sadzenie, wybieranie kart) w stanie Game Over
         }
 
         // hover over sun to get
@@ -334,11 +370,15 @@ void Game::checkCollis(float dt) {
 }
 
 void Game::update(float dt) {
+    // stop logic when gameover
+    if (state == 2) return;
+
     // plants cooldown
     if (peaCooldown > 0.0f) peaCooldown -= dt;
     if (sunCooldown > 0.0f) sunCooldown -= dt;
     if (nutCooldown > 0.0f) nutCooldown -= dt;
     if (cherryCooldown > 0.0f) cherryCooldown -= dt;
+
     // passive sun
     sunTimer += dt;
     if (sunTimer >= 8.0f) {
@@ -365,11 +405,12 @@ void Game::update(float dt) {
     // Intersection evaluation
     checkCollis(dt);
     
-    // delete zombs that left
+    // detect zombs that left
     for (auto& obj : objects) {
         if (auto z = dynamic_cast<Zomb*>(obj.get())) {
             if (z->getX() < 0.0f) { 
-                z->destroy();       
+                state = 2;
+                std::cout << "[GAME OVER] Zombie crossed the garden\n";
             }
         }
     }
@@ -430,6 +471,14 @@ void Game::render() {
     // draw sun text
     sunText.setString("Sun: " + std::to_string(sunPool));
     window.draw(sunText);
+
+    if (state == 2) {
+        sf::RectangleShape overlay({1200.0f, 800.0f});
+        overlay.setFillColor(sf::Color(0, 0, 0, 180));
+        window.draw(overlay);
+
+        window.draw(gameOverText);
+    }
 
     window.display();
 }

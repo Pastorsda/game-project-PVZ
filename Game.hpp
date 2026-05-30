@@ -60,6 +60,7 @@ class Game {
 
     sf::Font font;
     sf::Text sunText;
+    sf::Text gameOverText;
 
     sf::RectangleShape peaCard;
     sf::RectangleShape sunCard;
