@@ -12,7 +12,8 @@
 #include <algorithm>
 
 Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font), gameOverText(font) {
-    window.create(sf::VideoMode({1200, 800}), "PVZ - test");
+    
+    window.create(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "PVZ - test");
     window.setFramerateLimit(60);
 
     // Texture loading with fallback
@@ -90,13 +91,16 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
         }
     }
 
-    //end of game initiation
+    // Dynamic centering of text
     gameOverText.setFont(font);
     gameOverText.setString("GAME OVER\nPress R to start again");
     gameOverText.setCharacterSize(50);
     gameOverText.setFillColor(sf::Color::Red);
     gameOverText.setStyle(sf::Text::Bold);
-    gameOverText.setPosition({350.0f, 350.0f});
+    
+    float textX = (static_cast<float>(SCREEN_WIDTH) - 500.0f) / 2.0f; // Przybliżona szerokość tekstu
+    float textY = (static_cast<float>(SCREEN_HEIGHT) - 100.0f) / 2.0f;
+    gameOverText.setPosition({textX, textY});
 }
 
 void Game::run() {
@@ -150,12 +154,12 @@ void Game::handleInput() {
                     std::cout << "[GAME] Game Restarted\n";
                 }
             }
-            continue; // Przeskakujemy resztę zdarzeń (sadzenie, wybieranie kart) w stanie Game Over
+            continue; 
         }
 
         // hover over sun to get
         if (const auto* mouseMove = event->getIf<sf::Event::MouseMoved>()) {
-            sf::Vector2f mousePosF(static_cast<float>(mouseMove->position.x), static_cast<float>(mouseMove->position.y));
+            sf::Vector2f mousePosF = window.mapPixelToCoords(mouseMove->position);
 
             for (auto& obj : objects) {
                 if (!obj->getIsActive()) continue;
@@ -170,11 +174,10 @@ void Game::handleInput() {
             }
         }
 
-        // click events
+        // click events mapped to view
         if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>()) {
             if (mouseClick->button == sf::Mouse::Button::Left) {
-                sf::Vector2i mousePos = mouseClick->position;
-                sf::Vector2f mousePosF(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
+                sf::Vector2f mousePosF = window.mapPixelToCoords(mouseClick->position);
                 
                 // select peashooter
                 if (peaCard.getGlobalBounds().contains(mousePosF)) {
@@ -218,12 +221,12 @@ void Game::handleInput() {
                 }
 
                 // check mouse on grid
-                int clickedCol = (mousePos.x >= 200) ? (mousePos.x - 200) / 90 : -1;
+                int clickedCol = (mousePosF.x >= 200.0f) ? static_cast<int>((mousePosF.x - 200.0f) / 90.0f) : -1;
                 int clickedRow = -1;
 
                 // Change pixel into row
                 for (int r = 0; r < 5; ++r) {
-                    if (mousePos.y >= rowPositions[r] && mousePos.y <= rowPositions[r] + 80) {
+                    if (mousePosF.y >= rowPositions[r] && mousePosF.y <= rowPositions[r] + 80.0f) {
                         clickedRow = r;
                         break;
                     }
@@ -291,7 +294,7 @@ void Game::spawnZomb(float dt) {
 
     int randomRow = rowDist(gen);
     float spawnY = rowPositions[randomRow];
-    float spawnX = 1200.0f;
+    float spawnX = static_cast<float>(SCREEN_WIDTH);
 
     // Create zombie object
     auto newZomb = std::make_unique<Zomb>(spawnX, spawnY, zombTexture, randomRow, 100, 40.0f, 30);
@@ -384,8 +387,9 @@ void Game::update(float dt) {
     if (sunTimer >= 8.0f) {
         std::random_device rd;
         std::mt19937 gen(rd());
-        // random pos for falling sun
-        std::uniform_real_distribution<float> xDist(200.0f, 1000.0f);
+        
+        // random spot ajusted to SCREEN_WIDTH
+        std::uniform_real_distribution<float> xDist(200.0f, static_cast<float>(SCREEN_WIDTH) - 200.0f);
         
         float spawnX = xDist(gen);
         float spawnY = -50.0f;
@@ -461,7 +465,6 @@ void Game::render() {
     nutcard.setOutlineColor(currentSelection == SelectedPlant::Wallnut ? sf::Color::Red : sf::Color::White);
     cherrycard.setOutlineColor(currentSelection == SelectedPlant::Cherry ? sf::Color::Red : sf::Color::White);
 
-    
     // draw interface
     window.draw(peaCard);
     window.draw(sunCard);
@@ -473,7 +476,8 @@ void Game::render() {
     window.draw(sunText);
 
     if (state == 2) {
-        sf::RectangleShape overlay({1200.0f, 800.0f});
+        // dynamic overlay
+        sf::RectangleShape overlay({static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT)});
         overlay.setFillColor(sf::Color(0, 0, 0, 180));
         window.draw(overlay);
 
@@ -500,8 +504,8 @@ sf::Texture Game::createColorPlaceholder(unsigned int width, unsigned int height
 bool Game::isZombieInRow(int row) const {
     for (const auto& obj : objects) {
         if (auto z = dynamic_cast<Zomb*>(obj.get())) {
-            // check position
-            if (z->getIsActive() && z->getRow() == row && z->getX() <= 1200.0f) {
+            // addition of end of gardent to SCREEN_WIDTH
+            if (z->getIsActive() && z->getRow() == row && z->getX() <= static_cast<float>(SCREEN_WIDTH)) {
                 return true;
             }
         }

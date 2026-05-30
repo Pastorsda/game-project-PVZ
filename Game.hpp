@@ -17,6 +17,8 @@ enum class SelectedPlant {
 class Game {
     private:
     sf::RenderWindow window;
+    inline static const unsigned int SCREEN_WIDTH = 1200;
+    inline static const unsigned int SCREEN_HEIGHT = 800;
     sf::Clock clock;
 
     int state;
