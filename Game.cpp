@@ -183,7 +183,7 @@ void Game::handleInput() {
         // click events mapped to view
         if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>()) {
             
-            // 1. LEWY PRZYCISK MYSZY
+            // Left mouse click
             if (mouseClick->button == sf::Mouse::Button::Left) {
                 sf::Vector2f mousePosF = window.mapPixelToCoords(mouseClick->position);
 
@@ -297,7 +297,7 @@ void Game::handleInput() {
                     }
                 }
             }
-            // 2. PRAWY PRZYCISK MYSZY (teraz całkowicie niezależny)
+            // Right mouse click
             else if (mouseClick->button == sf::Mouse::Button::Right) {
                 if (currentSelection != SelectedPlant::None) {
                     currentSelection = SelectedPlant::None;
