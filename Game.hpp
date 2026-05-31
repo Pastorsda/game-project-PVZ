@@ -11,7 +11,8 @@ enum class SelectedPlant {
     Peashooter,
     Sunflower,
     Wallnut,
-    Cherry
+    Cherry,
+    Shovel
 };
 
 class Game {
@@ -71,6 +72,7 @@ class Game {
     sf::RectangleShape sunCard;
     sf::RectangleShape nutcard;
     sf::RectangleShape cherrycard;
+    sf::RectangleShape shovelcard;
 
     SelectedPlant currentSelection = SelectedPlant::None;
 

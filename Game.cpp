@@ -87,6 +87,14 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     cherrycard.setOutlineThickness(2.0f);
     cherrycard.setOutlineColor(sf::Color::White);
 
+    //shovelcard on ui
+    shovelcard.setSize({80.0f, 60.0f});
+    float shovelX = static_cast<float>(SCREEN_WIDTH) - 80.0f - 10.0f;
+    shovelcard.setPosition({shovelX, 10.0f});
+    shovelcard.setFillColor(sf::Color(128, 128, 128));
+    shovelcard.setOutlineThickness(2.0f);
+    shovelcard.setOutlineColor(sf::Color::White);
+
     // Grid initialization
     for (int r = 0; r < 5; ++r) {
         for (int c = 0; c < 9; ++c) {
@@ -227,6 +235,12 @@ void Game::handleInput() {
                     }
                     continue;
                 }
+                //select shovel
+                else if (shovelcard.getGlobalBounds().contains(mousePosF)) {
+                    currentSelection = SelectedPlant::Shovel;
+                    std::cout << "[UI] picked: shovel\n";
+                    continue;
+                }
 
                 // check mouse on grid
                 int clickedCol = (mousePosF.x >= 200.0f) ? static_cast<int>((mousePosF.x - 200.0f) / 90.0f) : -1;
@@ -242,7 +256,27 @@ void Game::handleInput() {
 
                 // checking grid and plant
                 if (clickedRow >= 0 && clickedRow < 5 && clickedCol >= 0 && clickedCol < 9) {
-                    if (!grid[clickedRow][clickedCol]) {
+
+                    // if shovel is picked and ocupied space is targeted
+                    if (currentSelection == SelectedPlant::Shovel) {
+                        if (grid[clickedRow][clickedCol]) {
+                            for (auto& obj : objects) {
+                                if (obj->getIsActive()) {
+                                    if (auto p = dynamic_cast<Plant*>(obj.get())) {
+                                        // column calculation
+                                        int col = static_cast<int>((p->getX() - 200) / 90);
+                                        if (p->getRow() == clickedRow && col == clickedCol) {
+                                            p->destroy();
+                                            std::cout << "[SHOVEL] Plant removed from [" << clickedRow << "][" << clickedCol << "]\n";
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                                currentSelection = SelectedPlant::None; // odznacz łopatę po użyciu
+                            }
+                        }
+                        else if (!grid[clickedRow][clickedCol]) {
                         // Centered pixel position
                         float plantX = 200.0f + clickedCol * 90.0f + 15.0f;
                         float plantY = rowPositions[clickedRow] + 10.0f;
@@ -528,13 +562,24 @@ void Game::render() {
             sf::RectangleShape highlightTile({90.0f, 80.0f});
             highlightTile.setPosition({200.0f + hoverCol * 90.0f, rowPositions[hoverRow]});
 
-            // color indicating placing
-            if (!grid[hoverRow][hoverCol]) {
-                highlightTile.setFillColor(sf::Color(0, 255, 0, 80)); 
-                highlightTile.setOutlineColor(sf::Color::Green);
+            // highlight for shovel
+            if (currentSelection == SelectedPlant::Shovel) {
+                if (grid[hoverRow][hoverCol]) {
+                    highlightTile.setFillColor(sf::Color(255, 255, 0, 80));
+                    highlightTile.setOutlineColor(sf::Color::Yellow);
+                } else {
+                    highlightTile.setFillColor(sf::Color(255, 0, 0, 80));
+                    highlightTile.setOutlineColor(sf::Color::Red);
+                }
             } else {
-                highlightTile.setFillColor(sf::Color(255, 0, 0, 80)); 
-                highlightTile.setOutlineColor(sf::Color::Red);
+                // highlight for plants
+                if (!grid[hoverRow][hoverCol]) {
+                    highlightTile.setFillColor(sf::Color(0, 255, 0, 80)); 
+                    highlightTile.setOutlineColor(sf::Color::Green);
+                } else {
+                    highlightTile.setFillColor(sf::Color(255, 0, 0, 80)); 
+                    highlightTile.setOutlineColor(sf::Color::Red);
+                }
             }
             highlightTile.setOutlineThickness(2.0f);
 
@@ -553,12 +598,14 @@ void Game::render() {
     sunCard.setOutlineColor(currentSelection == SelectedPlant::Sunflower ? sf::Color::Red : sf::Color::White);
     nutcard.setOutlineColor(currentSelection == SelectedPlant::Wallnut ? sf::Color::Red : sf::Color::White);
     cherrycard.setOutlineColor(currentSelection == SelectedPlant::Cherry ? sf::Color::Red : sf::Color::White);
+    shovelcard.setOutlineColor(currentSelection == SelectedPlant::Shovel ? sf::Color::Red : sf::Color::White);
 
     // draw interface
     window.draw(peaCard);
     window.draw(sunCard);
     window.draw(nutcard);
     window.draw(cherrycard);
+    window.draw(shovelcard);
     
     // draw sun text and time left
     if (initialDelayTimer < INITIAL_DELAY_MAX) {
