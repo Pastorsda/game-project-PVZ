@@ -9,6 +9,9 @@ private:
     bool readyToExplode;
 
 public:
+
+    ObjectType getType() const override { return ObjectType::Cherry; }
+
     Cherry(float startX, float startY, const sf::Texture& texture, int rowNum)
         : Plant(startX, startY, texture, rowNum, 300, 150), fuseTimer(1.2f), readyToExplode(false) {
         sprite.setTexture(texture);

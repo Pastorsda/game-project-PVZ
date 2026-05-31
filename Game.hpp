@@ -22,6 +22,13 @@ class Game {
     inline static const unsigned int SCREEN_HEIGHT = 800;
     sf::Clock clock;
 
+    //wave managment
+    int currentWave = 1;
+    int totalZombiesInWave = 3;
+    int zombiesSpawnedInWave = 0;
+    int zombiesKilledInWave = 0;
+    bool massiveWaveTriggered = false;
+
     int state;
     int sunPool;
     float sunTimer = 0.0f;
@@ -61,7 +68,7 @@ class Game {
     void handleInput();
     void update(float dt);
     void render();
-    void spawnZomb(float dt);
+    void spawnZomb();
     void checkCollis(float dt);
 
     //pause option
@@ -73,6 +80,11 @@ class Game {
     sf::Text sunText;
     sf::Text gameOverText;
 
+    // progress bar
+    sf::RectangleShape waveProgressBg;
+    sf::RectangleShape waveProgressBar;
+
+    // plant seedpacket
     sf::RectangleShape peaCard;
     sf::RectangleShape sunCard;
     sf::RectangleShape nutcard;

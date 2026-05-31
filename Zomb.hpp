@@ -19,6 +19,9 @@ public:
     
     virtual ~Zomb() = default;
 
+    //override the motode for every zombie
+    ObjectType getType() const override { return ObjectType::Zombie; }
+
     void update(float dt) override;
     void draw(sf::RenderWindow& window) override;
     void eat(Plant& plant, float dt);

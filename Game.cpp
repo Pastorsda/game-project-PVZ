@@ -98,7 +98,7 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     // pause button on ui
     pauseButton.setSize({100.0f, 45.0f});
     pauseButton.setPosition({10.0f, 10.0f});
-    pauseButton.setFillColor(sf::Color(100, 100, 100)); // Szary kolor
+    pauseButton.setFillColor(sf::Color(100, 100, 100));
     pauseButton.setOutlineThickness(2.0f);
     pauseButton.setOutlineColor(sf::Color::White);
 
@@ -139,6 +139,16 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     float textY = (static_cast<float>(SCREEN_HEIGHT) - 100.0f) / 2.0f;
     gameOverText.setPosition({textX, textY});
     sunText.setPosition({10.0f, 85.0f});
+    //wave visual
+        waveProgressBg.setSize({200.0f, 20.0f});
+        waveProgressBg.setPosition({560.0f, 30.0f});
+        waveProgressBg.setFillColor(sf::Color(50, 50, 50));
+        waveProgressBg.setOutlineThickness(1.0f);
+        waveProgressBg.setOutlineColor(sf::Color::White);
+    //wave progress
+        waveProgressBar.setSize({0.0f, 20.0f});
+        waveProgressBar.setPosition({560.0f, 30.0f});
+        waveProgressBar.setFillColor(sf::Color(200, 0, 0));
 }
 
 void Game::run() {
@@ -154,7 +164,7 @@ void Game::run() {
             if (initialDelayTimer >= INITIAL_DELAY_MAX) {
                 zombtimer += dt;
                 if (zombtimer >= 6.0f) {
-                    spawnZomb(dt);
+                    spawnZomb();
                     zombtimer = 0.0f;
                 }
             }
@@ -200,6 +210,11 @@ void Game::handleInput() {
                     sunCooldown = 0.0f;
                     nutCooldown = 0.0f;
                     cherryCooldown = 0.0f;
+                    currentWave = 1;
+                    totalZombiesInWave = 5;
+                    zombiesSpawnedInWave = 0;
+                    zombiesKilledInWave = 0;
+                    massiveWaveTriggered = false;
                     
                     for (int r = 0; r < 5; ++r) {
                         for (int c = 0; c < 9; ++c) {
@@ -220,7 +235,8 @@ void Game::handleInput() {
             for (auto& obj : objects) {
                 if (!obj->getIsActive()) continue;
 
-                if (auto sunObj = dynamic_cast<Sun*>(obj.get())) {
+                if (obj->getType() == ObjectType::Sun) {
+                    auto sunObj = dynamic_cast<Sun*>(obj.get());
                     if (sunObj->getBounds().contains(mousePosF)) {
                         sunPool += 25;
                         sunObj->destroy();
@@ -322,7 +338,9 @@ void Game::handleInput() {
                         if (grid[clickedRow][clickedCol]) {
                             for (auto& obj : objects) {
                                 if (obj->getIsActive()) {
-                                    if (auto p = dynamic_cast<Plant*>(obj.get())) {
+
+                                    if (obj->getType() == ObjectType::Plant || obj->getType() == ObjectType::Cherry) {
+                                        auto p = dynamic_cast<Plant*>(obj.get());
                                         // column calculation
                                         int col = static_cast<int>((p->getX() - 200) / 90);
                                         if (p->getRow() == clickedRow && col == clickedCol) {
@@ -333,7 +351,7 @@ void Game::handleInput() {
                                     }
                                 }
                             }
-                                currentSelection = SelectedPlant::None; // odznacz łopatę po użyciu
+                                currentSelection = SelectedPlant::None;
                             }
                         }
                         // Plant planting
@@ -405,9 +423,13 @@ void Game::handleInput() {
 
 
 // Random number generator & zombie initiation
-void Game::spawnZomb(float dt) {
+void Game::spawnZomb() {
     //grace period for planting defences
     if (initialDelayTimer < INITIAL_DELAY_MAX) {
+        return;
+    }
+
+    if (zombiesSpawnedInWave >= totalZombiesInWave) {
         return;
     }
 
@@ -425,23 +447,39 @@ void Game::spawnZomb(float dt) {
     std::unique_ptr<Zomb> newZomb = nullptr; //poliformic base
     std::string typeName = "";
 
-    // 1-60 -> common zombie
-    // 61-85 -> fast zombie
-    // 86-100 -> strong zombie
-        if (typeRoll <= 60) {
+    // Zombie types based on wave
+    if (currentWave == 1 || currentWave == 2) {
+        // wave 1-2: only basic
+        newZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
+        typeName = "Basic";
+    } 
+    else if (currentWave == 3 || currentWave == 4) {
+        // wave 3-4 basic and 30% fast
+        if (typeRoll <= 70) {
             newZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
             typeName = "Basic";
-        } 
-        else if (typeRoll > 60 && typeRoll <= 85) {
+        } else {
             newZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
             typeName = "Fast";
-        } 
-        else {
+        }
+    } 
+    else {
+        // wave 5+ all heavy 20% fast 20%
+        if (typeRoll <= 50) {
+            newZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
+            typeName = "Basic";
+        } else if (typeRoll > 50 && typeRoll <= 80) {
+            newZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
+            typeName = "Fast";
+        } else {
             newZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, zombTexture, randomRow);
             typeName = "Heavy";
         }
+    }
+
         if (newZomb != nullptr) {
             spawnNewObject(std::move(newZomb));
+            zombiesSpawnedInWave++;
             std::cout << "[SPAWNER] " << typeName << " zombie spawned in row: " << randomRow <<"\n";
         }
     }
@@ -456,17 +494,23 @@ void Game::checkCollis(float dt) {
     for (auto& obj : objects) {
         if (!obj->getIsActive()) continue;
 
-        if (auto c = dynamic_cast<Cherry*>(obj.get())) {
+        ObjectType type = obj->getType();
+
+       if (type == ObjectType::Cherry) {
+            auto c = static_cast<Cherry*>(obj.get());
             activeCherries.push_back(c);
             activePlants.push_back(c);
         }
-        else if (auto p = dynamic_cast<Plant*>(obj.get())) {
+        else if (type == ObjectType::Plant) {
+            auto p = static_cast<Plant*>(obj.get());
             activePlants.push_back(p);
         }
-        else if (auto z = dynamic_cast<Zomb*>(obj.get())) {
+        else if (type == ObjectType::Zombie) {
+            auto z = static_cast<Zomb*>(obj.get());
             activeZombs.push_back(z);
         }
-        else if (auto pea = dynamic_cast<Pea*>(obj.get())) {
+        else if (type == ObjectType::Pea) {
+            auto pea = static_cast<Pea*>(obj.get());
             activePeas.push_back(pea);
         }
     }
@@ -559,7 +603,8 @@ void Game::update(float dt) {
     
     // detect zombs that left
     for (auto& obj : objects) {
-        if (auto z = dynamic_cast<Zomb*>(obj.get())) {
+        if (obj->getType() == ObjectType::Zombie) {
+            auto z = dynamic_cast<Zomb*>(obj.get());
             if (z->getX() < 0.0f) { 
                 state = 2;
                 std::cout << "[GAME OVER] Zombie crossed the garden\n";
@@ -578,12 +623,20 @@ void Game::update(float dt) {
     // Freeing space before plant deletion
     for (auto& obj : objects) {
         if (!obj->getIsActive()) {
-            if (auto p = dynamic_cast<Plant*>(obj.get())) {
+            ObjectType type = obj->getType();
+
+            if (type == ObjectType::Plant || type == ObjectType::Cherry) {
+                auto p = static_cast<Plant*>(obj.get());
                 int col = static_cast<int>((p->getX() - 200) / 90);
                 if (p->getRow() >= 0 && p->getRow() < 5 && col >= 0 && col < 9) {
                     grid[p->getRow()][col] = false;
                     std::cout << "[GRID] Plant died space [" << p->getRow() << "][" << col << "] is now free\n";
                 }
+            }
+            // counting killed zombies
+            else if (type == ObjectType::Zombie) {
+                zombiesKilledInWave++;
+                std::cout << "[WAVE] progress: " << zombiesKilledInWave << "/" << totalZombiesInWave << "\n";
             }
         }
     }
@@ -592,7 +645,49 @@ void Game::update(float dt) {
     objects.erase(std::remove_if(objects.begin(), objects.end(),
         [](const std::unique_ptr<GameObject>& obj) { return !obj->getIsActive(); }),
         objects.end());
-}
+
+    // progress bar fulfillment
+    float progressFraction = (totalZombiesInWave > 0) ? (float)zombiesKilledInWave / totalZombiesInWave : 0.0f;
+    waveProgressBar.setSize({200.0f * progressFraction, 20.0f});
+
+    // massive wave
+    if (progressFraction >= 0.9f && !massiveWaveTriggered) {
+        massiveWaveTriggered = true;
+        std::cout << "[WAVE] A HUGE WAVE OF ZOMBIES IS APPROACHING!\n";
+        
+        // Imidietely spawn zombies on every lane
+        for (int r = 0; r < 5; ++r) {
+                float spawnY = rowPositions[r];
+                float spawnX = static_cast<float>(SCREEN_WIDTH) + (r * 30.0f);
+                
+                // get the zombies that need to spawn
+                std::unique_ptr<Zomb> massiveZomb = nullptr;
+                if (currentWave >= 5) {
+                    massiveZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, zombTexture, r);
+                } else if (currentWave >= 3) {
+                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, r);
+                } else {
+                    massiveZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, r);
+                }
+                
+                spawnNewObject(std::move(massiveZomb));
+                totalZombiesInWave++;
+                zombiesSpawnedInWave++;
+        }
+    }
+
+    // check if can start another wave
+    if (zombiesKilledInWave >= totalZombiesInWave) {
+        currentWave++;
+        zombiesSpawnedInWave = 0;
+        zombiesKilledInWave = 0;
+        massiveWaveTriggered = false;
+
+        //threat scaling every wave +3 zombies
+        totalZombiesInWave = 5 + (currentWave * 3);
+        std::cout << "[WAVE] Advanced to Wave " << currentWave << "! Target: " << totalZombiesInWave << "\n";
+    }
+}//end of game::update
 
 void Game::render() {
     window.clear(sf::Color(34, 112, 34)); // Grass green background
@@ -683,9 +778,12 @@ void Game::render() {
         int timeLeft = static_cast<int>(INITIAL_DELAY_MAX - initialDelayTimer);
         sunText.setString("Sun: " + std::to_string(sunPool) + " | Zombies arrive in: " + std::to_string(timeLeft) + "s" );
     } else {
-        sunText.setString("Sun: " + std::to_string(sunPool));
+        sunText.setString("Sun: " + std::to_string(sunPool) + " | WAVE: " + std::to_string(currentWave));
     }
     window.draw(sunText);
+
+    window.draw(waveProgressBg);
+    window.draw(waveProgressBar);
 
     // pause text overlay
     if (state == 3) {

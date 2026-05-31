@@ -11,6 +11,9 @@ private:
     sf::Sprite sprite;
 
 public:
+
+    ObjectType getType() const override { return ObjectType::Pea; }
+
     Pea(float startX, float startY, int rowNum, const sf::Texture& tex, int dmg = 20, float spd = 350.0f)
         : GameObject(startX, startY, 16.0f, 16.0f), sprite(tex), speed(spd), damage(dmg), row(rowNum) {
 

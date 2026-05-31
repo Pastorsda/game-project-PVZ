@@ -14,6 +14,9 @@ private:
     bool isFalling;
     sf::Sprite sprite;
 public:
+
+    ObjectType getType() const override { return ObjectType::Sun; }
+
     Sun(float startX, float startY, const sf::Texture& tex, bool falling)
     : GameObject(startX, startY, 30.0f, 30.0f), sprite(tex), lifetime(0.0f), isFalling(falling){
 
