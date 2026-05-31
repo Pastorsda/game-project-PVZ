@@ -141,13 +141,13 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
     sunText.setPosition({10.0f, 85.0f});
     //wave visual
         waveProgressBg.setSize({200.0f, 20.0f});
-        waveProgressBg.setPosition({560.0f, 30.0f});
+        waveProgressBg.setPosition({static_cast<float>(SCREEN_WIDTH) - 220.0f, static_cast<float>(SCREEN_HEIGHT) - 45.0f});
         waveProgressBg.setFillColor(sf::Color(50, 50, 50));
         waveProgressBg.setOutlineThickness(1.0f);
         waveProgressBg.setOutlineColor(sf::Color::White);
     //wave progress
         waveProgressBar.setSize({0.0f, 20.0f});
-        waveProgressBar.setPosition({560.0f, 30.0f});
+        waveProgressBar.setPosition({static_cast<float>(SCREEN_WIDTH) - 220.0f, static_cast<float>(SCREEN_HEIGHT) - 45.0f});
         waveProgressBar.setFillColor(sf::Color(200, 0, 0));
 
     //horde warning
@@ -164,7 +164,10 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
     textBounds.position.y + textBounds.size.y / 2.0f
     });
 
-    hordeWarningText.setPosition({static_cast<float>(SCREEN_WIDTH) / 2.0f, 100.0f});
+    hordeWarningText.setPosition({
+        static_cast<float>(SCREEN_WIDTH) / 2.0f,
+        (static_cast<float>(SCREEN_HEIGHT) / 2.0f) - 50.0f
+    });
     
 }
 
