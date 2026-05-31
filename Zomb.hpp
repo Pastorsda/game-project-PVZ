@@ -24,12 +24,17 @@ public:
 
     void update(float dt) override;
     void draw(sf::RenderWindow& window) override;
-    void eat(Plant& plant, float dt);
+    virtual void eat(Plant& plant, float dt);
     void setEating(bool eating);
 
     //getters
     int getRow() const;
     sf::FloatRect getBounds() const override;
+    float getX() const { return x; }
+    void setX(float newX) {
+        x = newX;
+        sprite.setPosition({x, y});
+    }
 
     void takeDamage(int amount);
 };
