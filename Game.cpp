@@ -14,7 +14,7 @@
 #include <random>
 #include <algorithm>
 
-Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font), gameOverText(font), pauseButtonText(font), pauseMenuText(font) {
+Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font), gameOverText(font), pauseButtonText(font), pauseMenuText(font), hordeWarningText(font) {
     
     window.create(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "PVZ - test");
     window.setFramerateLimit(60);
@@ -134,7 +134,7 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     gameOverText.setCharacterSize(50);
     gameOverText.setFillColor(sf::Color::Red);
     gameOverText.setStyle(sf::Text::Style::Bold);
-    
+
     float textX = (static_cast<float>(SCREEN_WIDTH) - 500.0f) / 2.0f; // Przybliżona szerokość tekstu
     float textY = (static_cast<float>(SCREEN_HEIGHT) - 100.0f) / 2.0f;
     gameOverText.setPosition({textX, textY});
@@ -149,6 +149,23 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
         waveProgressBar.setSize({0.0f, 20.0f});
         waveProgressBar.setPosition({560.0f, 30.0f});
         waveProgressBar.setFillColor(sf::Color(200, 0, 0));
+
+    //horde warning
+    hordeWarningText.setFont(font);
+    hordeWarningText.setString("A HUGE WAVE OF ZOMBIES IS APPROACHING!");
+    hordeWarningText.setCharacterSize(36);
+    hordeWarningText.setFillColor(sf::Color::Red);
+    hordeWarningText.setStyle(sf::Text::Bold);
+    // Center the text horizontally near the top of the screen
+    sf::FloatRect textBounds = hordeWarningText.getLocalBounds();
+
+    hordeWarningText.setOrigin({
+    textBounds.position.x + textBounds.size.x / 2.0f, 
+    textBounds.position.y + textBounds.size.y / 2.0f
+    });
+
+    hordeWarningText.setPosition({static_cast<float>(SCREEN_WIDTH) / 2.0f, 100.0f});
+    
 }
 
 void Game::run() {
@@ -433,8 +450,6 @@ void Game::spawnZomb() {
         return;
     }
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
     std::uniform_int_distribution<> rowDist(0, 4); //random row line
     std::uniform_int_distribution<> typeDist(1, 100); //random type chance
 
@@ -464,7 +479,7 @@ void Game::spawnZomb() {
         }
     } 
     else {
-        // wave 5+ all heavy 20% fast 20%
+        // wave 5+ all heavy 20% fast 30%
         if (typeRoll <= 50) {
             newZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
             typeName = "Basic";
@@ -560,8 +575,17 @@ void Game::checkCollis(float dt) {
 }
 
 void Game::update(float dt) {
-    // stop logic when gameover
+    // stop logic when gameover or paused
     if (state == 2 || state == 3) return;
+
+    // Manage the horde text display countdown
+    if (showHordeWarning) {
+        hordeWarningTimer += dt;
+        if (hordeWarningTimer >= 3.0f) { // HORDE_WARNING_DURATION
+            showHordeWarning = false;
+            hordeWarningTimer = 0.0f;
+        }
+    }
 
     //start countdown
     if (initialDelayTimer < INITIAL_DELAY_MAX) {
@@ -576,9 +600,7 @@ void Game::update(float dt) {
 
     // passive sun
     sunTimer += dt;
-    if (sunTimer >= 8.0f) {
-        std::random_device rd;
-        std::mt19937 gen(rd());
+    if (sunTimer >= 12.0f) {
         
         // random spot ajusted to SCREEN_WIDTH
         std::uniform_real_distribution<float> xDist(200.0f, static_cast<float>(SCREEN_WIDTH) - 200.0f);
@@ -648,36 +670,64 @@ void Game::update(float dt) {
 
     // progress bar fulfillment
     float progressFraction = (totalZombiesInWave > 0) ? (float)zombiesKilledInWave / totalZombiesInWave : 0.0f;
+    if (progressFraction > 1.0f) progressFraction = 1.0f;
     waveProgressBar.setSize({200.0f * progressFraction, 20.0f});
 
     // massive wave
-    if (progressFraction >= 0.9f && !massiveWaveTriggered) {
+    if (zombiesKilledInWave >= totalZombiesInWave && !massiveWaveTriggered) {
         massiveWaveTriggered = true;
-        std::cout << "[WAVE] A HUGE WAVE OF ZOMBIES IS APPROACHING!\n";
+        showHordeWarning = true;
+        hordeWarningTimer = 0.0f;
+        std::cout << "[WAVE] A HUGE HORDE OF ZOMBIES IS APPROACHING!\n";
+
+        //dynamic calc the horde numbers
+        int hordeSize = 3 + (currentWave * 2);
+
+        std::uniform_int_distribution<> rowDist(0, 4);
+        std::uniform_real_distribution<float> xOffsetDist(0.0f, 200.0f); // Spreads them out depth-wise
+        std::uniform_int_distribution<> typeDist(1, 100);
+
+        totalZombiesInWave += hordeSize;
         
         // Imidietely spawn zombies on every lane
-        for (int r = 0; r < 5; ++r) {
-                float spawnY = rowPositions[r];
-                float spawnX = static_cast<float>(SCREEN_WIDTH) + (r * 30.0f);
+        for (int i = 0; i < hordeSize; ++i) {
+                int randomRow = rowDist(gen);
+                float spawnY = rowPositions[randomRow];
+                float spawnX = static_cast<float>(SCREEN_WIDTH) + xOffsetDist(gen);
                 
-                // get the zombies that need to spawn
                 std::unique_ptr<Zomb> massiveZomb = nullptr;
-                if (currentWave >= 5) {
-                    massiveZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, zombTexture, r);
-                } else if (currentWave >= 3) {
-                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, r);
+                int typeRoll = typeDist(gen);
+
+            // Determine zombie types allowed in this wave's horde
+            if (currentWave == 1 || currentWave == 2) {
+                massiveZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
+            } 
+            else if (currentWave == 3 || currentWave == 4) {
+                if (typeRoll <= 60) {
+                    massiveZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
                 } else {
-                    massiveZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, r);
+                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
                 }
-                
+            } 
+            else { // Wave 5 and beyond
+                if (typeRoll <= 40) {
+                    massiveZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
+                } else if (typeRoll <= 75) {
+                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
+                } else {
+                    massiveZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, zombTexture, randomRow);
+                }
+            }
+            
+            if (massiveZomb != nullptr) {
                 spawnNewObject(std::move(massiveZomb));
-                totalZombiesInWave++;
                 zombiesSpawnedInWave++;
+            }
         }
     }
 
-    // check if can start another wave
-    if (zombiesKilledInWave >= totalZombiesInWave) {
+    // check if wave is finished
+    if (zombiesKilledInWave >= totalZombiesInWave && massiveWaveTriggered) {
         currentWave++;
         zombiesSpawnedInWave = 0;
         zombiesKilledInWave = 0;
@@ -772,6 +822,11 @@ void Game::render() {
     //draw pause
     window.draw(pauseButton);
     window.draw(pauseButtonText);
+
+    //draw wave warning
+    if (showHordeWarning) {
+    window.draw(hordeWarningText);
+    }
     
     // draw sun text and time left
     if (initialDelayTimer < INITIAL_DELAY_MAX) {
@@ -822,7 +877,8 @@ sf::Texture Game::createColorPlaceholder(unsigned int width, unsigned int height
 // check line for zombs
 bool Game::isZombieInRow(int row) const {
     for (const auto& obj : objects) {
-        if (auto z = dynamic_cast<Zomb*>(obj.get())) {
+        if (obj->getIsActive() && obj->getType() == ObjectType::Zombie) {
+            auto z = dynamic_cast<Zomb*>(obj.get());
             // addition of end of gardent to SCREEN_WIDTH
             if (z->getIsActive() && z->getRow() == row && z->getX() <= static_cast<float>(SCREEN_WIDTH)) {
                 return true;

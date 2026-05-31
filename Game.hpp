@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <memory>
+#include <random>
 #include "GameObj.hpp"
 
 enum class SelectedPlant {
@@ -84,6 +85,12 @@ class Game {
     sf::RectangleShape waveProgressBg;
     sf::RectangleShape waveProgressBar;
 
+    // horde warning
+    sf::Text hordeWarningText;
+    bool showHordeWarning = false;
+    float hordeWarningTimer = 0.0f;
+    const float HORDE_WARNING_DURATION = 3.0f;
+
     // plant seedpacket
     sf::RectangleShape peaCard;
     sf::RectangleShape sunCard;
@@ -92,6 +99,8 @@ class Game {
     sf::RectangleShape shovelcard;
 
     SelectedPlant currentSelection = SelectedPlant::None;
+
+    std::mt19937 gen;
 
     public:
     Game();

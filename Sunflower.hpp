@@ -13,7 +13,7 @@ class Sunflower : public Plant {
     private:
     float sunTimer;
     Game& gameContext;
-    const float spawnInterval = 10.0f;
+    const float spawnInterval = 20.0f;
 
     public:
     Sunflower(float startX, float startY, const sf::Texture& texture, int rowNum, Game& game)
