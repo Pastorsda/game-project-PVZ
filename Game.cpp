@@ -182,9 +182,11 @@ void Game::handleInput() {
 
         // click events mapped to view
         if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>()) {
+            
+            // 1. LEWY PRZYCISK MYSZY
             if (mouseClick->button == sf::Mouse::Button::Left) {
                 sf::Vector2f mousePosF = window.mapPixelToCoords(mouseClick->position);
-                
+
                 // select peashooter
                 if (peaCard.getGlobalBounds().contains(mousePosF)) {
                     if (peaCooldown <= 0.0f) { 
@@ -286,6 +288,20 @@ void Game::handleInput() {
                             currentSelection = SelectedPlant::None;
                         }
                     }
+                }
+                // left mouse click deselects when clicked outside of grid
+                else {
+                    if (currentSelection != SelectedPlant::None) {
+                        currentSelection = SelectedPlant::None;
+                        std::cout << "[UI] Deselected plant (clicked outside grid)\n";
+                    }
+                }
+            }
+            // 2. PRAWY PRZYCISK MYSZY (teraz całkowicie niezależny)
+            else if (mouseClick->button == sf::Mouse::Button::Right) {
+                if (currentSelection != SelectedPlant::None) {
+                    currentSelection = SelectedPlant::None;
+                    std::cout << "[UI] Deselected plant (Right-Click)\n";
                 }
             }
         }
