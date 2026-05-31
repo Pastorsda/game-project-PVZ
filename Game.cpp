@@ -1,6 +1,9 @@
 #include "Game.hpp"
 #include "Plant.hpp"
 #include "Zomb.hpp"
+#include "basicZomb.hpp"
+#include "FastZomb.hpp"
+#include "HeavyZomb.hpp"
 #include "Peashooter.hpp"
 #include "Pea.hpp"
 #include "Sunflower.hpp"
@@ -290,18 +293,38 @@ void Game::handleInput() {
 void Game::spawnZomb(float dt) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> rowDist(0, 4);
+    std::uniform_int_distribution<> rowDist(0, 4); //random row line
+    std::uniform_int_distribution<> typeDist(1, 100); //random type chance
 
     int randomRow = rowDist(gen);
     float spawnY = rowPositions[randomRow];
     float spawnX = static_cast<float>(SCREEN_WIDTH);
 
     // Create zombie object
-    auto newZomb = std::make_unique<Zomb>(spawnX, spawnY, zombTexture, randomRow, 100, 40.0f, 30);
-    spawnNewObject(std::move(newZomb));
+    int typeRoll = typeDist(gen);
+    std::unique_ptr<Zomb> newZomb = nullptr; //poliformic base
+    std::string typeName = "";
 
-    std::cout << "[SPAWNER TEST] Zombie in row: " << randomRow << "\n";
-}
+    // 1-60 -> common zombie
+    // 61-85 -> fast zombie
+    // 86-100 -> strong zombie
+        if (typeRoll <= 60) {
+            newZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
+            typeName = "Basic";
+        } 
+        else if (typeRoll > 60 && typeRoll <= 85) {
+            newZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
+            typeName = "Fast";
+        } 
+        else {
+            newZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, zombTexture, randomRow);
+            typeName = "Heavy";
+        }
+        if (newZomb != nullptr) {
+            spawnNewObject(std::move(newZomb));
+            std::cout << "[SPAWNER] " << typeName << " zombie spawned in row: " << randomRow <<"\n";
+        }
+    }
 
 void Game::checkCollis(float dt) {
     std::vector<Plant*> activePlants;

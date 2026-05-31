@@ -2,55 +2,61 @@
 #include "Plant.hpp"
 #include <iostream>
 
-Zomb::Zomb(float startX, float startY, const sf::Texture& texture, int rowNum, int health, float moveSpeed, int atkPower)
-: GameObject(startX, startY, 60.0f, 60.0f), sprite(texture), hp(health), speed(moveSpeed), dmg(atkPower), row(rowNum), isEating(false) {
-//sprite underlying
+Zomb::Zomb(float startX, float startY, const sf::Texture& texture, int rowNum, int maxHp, float moveSpeed, int attackDmg)
+    : GameObject(startX, startY), hp(maxHp), dmg(attackDmg), row(rowNum), speed(moveSpeed), isEating(false), damageBuffer(0.0f), sprite(texture)
+    {
+    sprite.setTexture(texture);
+    // starting position
     sprite.setPosition({x, y});
-}
+    }
 
 void Zomb::update(float dt) {
-    if (!isActive) return;
-//continous motion until obstructed
+    if (!getIsActive()) return;
+
+    // Movement when not eating
     if (!isEating) {
         x -= speed * dt;
+        sprite.setPosition({x, y});
     }
-//Sync physical coordinates to graphic sprite for rendering
-    sprite.setPosition({x, y});
 }
 
 void Zomb::draw(sf::RenderWindow& window) {
-    if (isActive) {
-        window.draw(sprite); //direct rendering call
+    if (getIsActive()) {
+        window.draw(sprite);
     }
 }
 
 void Zomb::eat(Plant& plant, float dt) {
     isEating = true;
-//delta time accumulation prevents frame updates to operate bellow 0
-    damageBuffer += dmg * dt;
-
+    
+    // dmg to buffor
+    damageBuffer += static_cast<float>(dmg) * dt;
+    
+    // dmg buffor for elimination calculation bugs
     if (damageBuffer >= 1.0f) {
-        int finalDmg = static_cast<int>(damageBuffer);
-        plant.takeDamage(finalDmg);
-        damageBuffer -= finalDmg; //deduct the whole int damage retain remainder
+        int damageToSend = static_cast<int>(damageBuffer);
+        plant.takeDamage(damageToSend);
+        damageBuffer -= static_cast<float>(damageToSend);
     }
 }
 
 void Zomb::setEating(bool eating) {
     isEating = eating;
-    if (!isEating) {
-        damageBuffer = 0.0f; // reset float accumulation
-    }
 }
 
 int Zomb::getRow() const {
     return row;
 }
 
+sf::FloatRect Zomb::getBounds() const {
+    // hitbox
+    return sprite.getGlobalBounds();
+}
+
 void Zomb::takeDamage(int amount) {
     hp -= amount;
     if (hp <= 0) {
-        std::cout << "[LOG] Zombie in row " << row << " was defeated\n";
-        destroy(); //mark for deletion
+        destroy();
+        std::cout << "[ZOMBIE] Died in row " << row << "\n";
     }
 }

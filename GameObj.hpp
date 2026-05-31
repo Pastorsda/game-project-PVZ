@@ -16,7 +16,7 @@ public:
     virtual void update(float dt) = 0;
     virtual void draw(sf::RenderWindow& window) = 0;
 
-    sf::FloatRect getBounds() const;
+    virtual sf::FloatRect getBounds() const;
     bool getIsActive() const;
     void destroy();
     float getX() const;
