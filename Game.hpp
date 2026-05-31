@@ -64,6 +64,11 @@ class Game {
     void spawnZomb(float dt);
     void checkCollis(float dt);
 
+    //pause option
+    sf::RectangleShape pauseButton;
+    sf::Text pauseButtonText;
+    sf::Text pauseMenuText;
+
     sf::Font font;
     sf::Text sunText;
     sf::Text gameOverText;

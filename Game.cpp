@@ -14,7 +14,7 @@
 #include <random>
 #include <algorithm>
 
-Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font), gameOverText(font) {
+Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font), gameOverText(font), pauseButtonText(font), pauseMenuText(font) {
     
     window.create(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "PVZ - test");
     window.setFramerateLimit(60);
@@ -95,6 +95,32 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     shovelcard.setOutlineThickness(2.0f);
     shovelcard.setOutlineColor(sf::Color::White);
 
+    // pause button on ui
+    pauseButton.setSize({100.0f, 45.0f});
+    pauseButton.setPosition({10.0f, 10.0f});
+    pauseButton.setFillColor(sf::Color(100, 100, 100)); // Szary kolor
+    pauseButton.setOutlineThickness(2.0f);
+    pauseButton.setOutlineColor(sf::Color::White);
+
+    // pause text on button
+    pauseButtonText.setFont(font);
+    pauseButtonText.setString("PAUSE");
+    pauseButtonText.setCharacterSize(18);
+    pauseButtonText.setFillColor(sf::Color::White);
+    pauseButtonText.setPosition({30.0f, 20.0f});
+
+    // text to inform that pause is enabled
+    pauseMenuText.setFont(font);
+    pauseMenuText.setString("GAME PAUSED\nPress P or click PAUSE to resume");
+    pauseMenuText.setCharacterSize(40);
+    pauseMenuText.setFillColor(sf::Color::Yellow);
+    pauseMenuText.setStyle(sf::Text::Style::Bold);
+
+    // position of text
+    float pTextX = (static_cast<float>(SCREEN_WIDTH) - 550.0f) / 2.0f;
+    float pTextY = (static_cast<float>(SCREEN_HEIGHT) - 100.0f) / 2.0f;
+    pauseMenuText.setPosition({pTextX, pTextY});
+
     // Grid initialization
     for (int r = 0; r < 5; ++r) {
         for (int c = 0; c < 9; ++c) {
@@ -107,7 +133,7 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     gameOverText.setString("GAME OVER\nPress R to start again");
     gameOverText.setCharacterSize(50);
     gameOverText.setFillColor(sf::Color::Red);
-    gameOverText.setStyle(sf::Text::Bold);
+    gameOverText.setStyle(sf::Text::Style::Bold);
     
     float textX = (static_cast<float>(SCREEN_WIDTH) - 500.0f) / 2.0f; // Przybliżona szerokość tekstu
     float textY = (static_cast<float>(SCREEN_HEIGHT) - 100.0f) / 2.0f;
@@ -144,6 +170,21 @@ void Game::handleInput() {
         if (event->is<sf::Event::Closed>()) {
             window.close();
         }
+
+        // Pause button 'p' to toggle pause
+        if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            if (keyPressed->code == sf::Keyboard::Key::P) {
+                if (state == 1) {
+                    state = 3; // Włącz pauzę
+                    std::cout << "[GAME] Paused via P key\n";
+                } else if (state == 3) {
+                    state = 1; // Wyłącz pauzę
+                    std::cout << "[GAME] Resumed via P key\n";
+                }
+                continue;
+            }
+        }
+
         // Game end
         if (state == 2) {
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
@@ -172,6 +213,7 @@ void Game::handleInput() {
         }
 
         // hover over sun to get
+        if (state == 1) {
         if (const auto* mouseMove = event->getIf<sf::Event::MouseMoved>()) {
             sf::Vector2f mousePosF = window.mapPixelToCoords(mouseMove->position);
 
@@ -187,6 +229,7 @@ void Game::handleInput() {
                 }
             }
         }
+        }
 
         // click events mapped to view
         if (const auto* mouseClick = event->getIf<sf::Event::MouseButtonPressed>()) {
@@ -194,6 +237,23 @@ void Game::handleInput() {
             // Left mouse click
             if (mouseClick->button == sf::Mouse::Button::Left) {
                 sf::Vector2f mousePosF = window.mapPixelToCoords(mouseClick->position);
+
+                // pause when clicked
+                if (pauseButton.getGlobalBounds().contains(mousePosF)) {
+                    if (state == 1) {
+                        state = 3; // pause on
+                        std::cout << "[UI] Game Paused via Button\n";
+                    } else if (state == 3) {
+                        state = 1; // pause off
+                        std::cout << "[UI] Game Resumed via Button\n";
+                    }
+                    continue;
+                }
+
+                //block interface when paused
+                if (state == 3) {
+                    continue;
+                }
 
                 // select peashooter
                 if (peaCard.getGlobalBounds().contains(mousePosF)) {
@@ -276,6 +336,7 @@ void Game::handleInput() {
                                 currentSelection = SelectedPlant::None; // odznacz łopatę po użyciu
                             }
                         }
+                        // Plant planting
                         else if (!grid[clickedRow][clickedCol]) {
                         // Centered pixel position
                         float plantX = 200.0f + clickedCol * 90.0f + 15.0f;
@@ -331,7 +392,7 @@ void Game::handleInput() {
                     }
                 }
             }
-            // Right mouse click
+            // Right mouse click unselect
             else if (mouseClick->button == sf::Mouse::Button::Right) {
                 if (currentSelection != SelectedPlant::None) {
                     currentSelection = SelectedPlant::None;
@@ -339,8 +400,9 @@ void Game::handleInput() {
                 }
             }
         }
+        }
     } // end of loop pollEvent
-}
+
 
 // Random number generator & zombie initiation
 void Game::spawnZomb(float dt) {
@@ -455,7 +517,7 @@ void Game::checkCollis(float dt) {
 
 void Game::update(float dt) {
     // stop logic when gameover
-    if (state == 2) return;
+    if (state == 2 || state == 3) return;
 
     //start countdown
     if (initialDelayTimer < INITIAL_DELAY_MAX) {
@@ -540,13 +602,18 @@ void Game::render() {
         obj->draw(window);
     }
 
+    // Pasue highlighting
+    sf::Vector2i mousePosI = sf::Mouse::getPosition(window);
+    sf::Vector2f mousePosF = window.mapPixelToCoords(mousePosI);
+    if (pauseButton.getGlobalBounds().contains(mousePosF)) {
+        pauseButton.setFillColor(sf::Color(140, 140, 140)); // Jasnoszary po najechaniu
+    } else {
+        pauseButton.setFillColor(sf::Color(100, 100, 100)); // Domyślny szary
+    }
+
     // tile highlighting
     if (currentSelection != SelectedPlant::None) {
         // get mouse position and calc to coordinates
-        sf::Vector2i mousePosI = sf::Mouse::getPosition(window);
-        sf::Vector2f mousePosF = window.mapPixelToCoords(mousePosI);
-
-        // calculate row and column under mouse
         int hoverCol = (mousePosF.x >= 200.0f) ? static_cast<int>((mousePosF.x - 200.0f) / 90.0f) : -1;
         int hoverRow = -1;
 
@@ -606,6 +673,10 @@ void Game::render() {
     window.draw(nutcard);
     window.draw(cherrycard);
     window.draw(shovelcard);
+
+    //draw pause
+    window.draw(pauseButton);
+    window.draw(pauseButtonText);
     
     // draw sun text and time left
     if (initialDelayTimer < INITIAL_DELAY_MAX) {
@@ -616,8 +687,17 @@ void Game::render() {
     }
     window.draw(sunText);
 
+    // pause text overlay
+    if (state == 3) {
+        sf::RectangleShape overlay({static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT)});
+        overlay.setFillColor(sf::Color(0, 0, 0, 150));
+        window.draw(overlay);
+
+        window.draw(pauseMenuText);
+    }
+
+    // game over text overlay
     if (state == 2) {
-        // dynamic overlay
         sf::RectangleShape overlay({static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT)});
         overlay.setFillColor(sf::Color(0, 0, 0, 180));
         window.draw(overlay);
