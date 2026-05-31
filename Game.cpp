@@ -489,6 +489,43 @@ void Game::render() {
     for (auto& obj : objects) {
         obj->draw(window);
     }
+
+    // tile highlighting
+    if (currentSelection != SelectedPlant::None) {
+        // get mouse position and calc to coordinates
+        sf::Vector2i mousePosI = sf::Mouse::getPosition(window);
+        sf::Vector2f mousePosF = window.mapPixelToCoords(mousePosI);
+
+        // calculate row and column under mouse
+        int hoverCol = (mousePosF.x >= 200.0f) ? static_cast<int>((mousePosF.x - 200.0f) / 90.0f) : -1;
+        int hoverRow = -1;
+
+        for (int r = 0; r < 5; ++r) {
+            if (mousePosF.y >= rowPositions[r] && mousePosF.y <= rowPositions[r] + 80.0f) {
+                hoverRow = r;
+                break;
+            }
+        }
+        // if the mouse is on the grid
+        if (hoverRow >= 0 && hoverRow < 5 && hoverCol >= 0 && hoverCol < 9) {
+            // tile size 
+            sf::RectangleShape highlightTile({90.0f, 80.0f});
+            highlightTile.setPosition({200.0f + hoverCol * 90.0f, rowPositions[hoverRow]});
+
+            // color indicating placing
+            if (!grid[hoverRow][hoverCol]) {
+                highlightTile.setFillColor(sf::Color(0, 255, 0, 80)); 
+                highlightTile.setOutlineColor(sf::Color::Green);
+            } else {
+                highlightTile.setFillColor(sf::Color(255, 0, 0, 80)); 
+                highlightTile.setOutlineColor(sf::Color::Red);
+            }
+            highlightTile.setOutlineThickness(2.0f);
+
+            //draw rectangle
+            window.draw(highlightTile);
+        }
+    }
     // cooldown plant colour
     peaCard.setFillColor(peaCooldown > 0.0f ? sf::Color(0, 60, 0) : sf::Color(0, 150, 0));
     sunCard.setFillColor(sunCooldown > 0.0f ? sf::Color(90, 90, 0) : sf::Color(200, 200, 0));
