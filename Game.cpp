@@ -104,6 +104,7 @@ Game::Game() : state(1), sunPool(150), sunTimer(0.0f), currentSelection(Selected
     float textX = (static_cast<float>(SCREEN_WIDTH) - 500.0f) / 2.0f; // Przybliżona szerokość tekstu
     float textY = (static_cast<float>(SCREEN_HEIGHT) - 100.0f) / 2.0f;
     gameOverText.setPosition({textX, textY});
+    sunText.setPosition({10.0f, 85.0f});
 }
 
 void Game::run() {
@@ -116,10 +117,12 @@ void Game::run() {
 
         // Spawn countdown loop - only when game is active
         if (state == 1) {
-            zombtimer += dt;
-            if (zombtimer >= 6.0f) {
-                spawnZomb(dt);
-                zombtimer = 0.0f;
+            if (initialDelayTimer >= INITIAL_DELAY_MAX) {
+                zombtimer += dt;
+                if (zombtimer >= 6.0f) {
+                    spawnZomb(dt);
+                    zombtimer = 0.0f;
+                }
             }
         }
 
@@ -291,6 +294,11 @@ void Game::handleInput() {
 
 // Random number generator & zombie initiation
 void Game::spawnZomb(float dt) {
+    //grace period for planting defences
+    if (initialDelayTimer < INITIAL_DELAY_MAX) {
+        return;
+    }
+
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rowDist(0, 4); //random row line
@@ -399,6 +407,11 @@ void Game::update(float dt) {
     // stop logic when gameover
     if (state == 2) return;
 
+    //start countdown
+    if (initialDelayTimer < INITIAL_DELAY_MAX) {
+        initialDelayTimer += dt;
+    }
+
     // plants cooldown
     if (peaCooldown > 0.0f) peaCooldown -= dt;
     if (sunCooldown > 0.0f) sunCooldown -= dt;
@@ -494,8 +507,13 @@ void Game::render() {
     window.draw(nutcard);
     window.draw(cherrycard);
     
-    // draw sun text
-    sunText.setString("Sun: " + std::to_string(sunPool));
+    // draw sun text and time left
+    if (initialDelayTimer < INITIAL_DELAY_MAX) {
+        int timeLeft = static_cast<int>(INITIAL_DELAY_MAX - initialDelayTimer);
+        sunText.setString("Sun: " + std::to_string(sunPool) + " | Zombies arrive in: " + std::to_string(timeLeft) + "s" );
+    } else {
+        sunText.setString("Sun: " + std::to_string(sunPool));
+    }
     window.draw(sunText);
 
     if (state == 2) {

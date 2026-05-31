@@ -24,6 +24,8 @@ class Game {
     int state;
     int sunPool;
     float sunTimer = 0.0f;
+    float initialDelayTimer = 0.0f;
+    inline static const float INITIAL_DELAY_MAX = 15.0f;
 //assets
     sf::Texture plantTexture;
     sf::Texture zombTexture;
