@@ -8,7 +8,8 @@ enum class ObjectType {
     Zombie,
     Pea,
     Sun,
-    Cherry
+    Cherry,
+    FX
 };
 
 class GameObject {

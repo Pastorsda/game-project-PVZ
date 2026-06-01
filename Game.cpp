@@ -10,6 +10,7 @@
 #include "Wallnut.hpp"
 #include "Cherry.hpp"
 #include "ExplosionFX.hpp"
+#include "HitParticleFX.hpp"
 #include "Sun.hpp"
 #include <iostream>
 #include <random>
@@ -578,6 +579,24 @@ void Game::checkCollis(float dt) {
     for (auto* pea : activePeas) {
         for (auto* z : activeZombs) {
             if (pea->getRow() == z->getRow() && pea->getBounds().findIntersection(z->getBounds())) {
+                
+                // Particle when pea hits zombie
+                float hitX = pea->getBounds().position.x + (pea->getBounds().size.x / 2.0f);
+                float hitY = pea->getBounds().position.y + (pea->getBounds().size.y / 2.0f);
+
+                // Set colour of particle to the same as pea
+                sf::Color pColor = pea->getColor();
+
+                if (pColor == sf::Color::White) {
+                    pColor = sf::Color(50, 205, 50);
+                }
+
+                // Multiple particle spread
+                for (int i = 0; i < 6; ++i) {
+                    auto particle = std::make_unique<HitParticle>(hitX, hitY, pColor);
+                    spawnNewObject(std::move(particle));
+                }
+                
                 z->takeDamage(pea->getDamage());
                 pea->destroy();
                 break;

@@ -23,7 +23,7 @@ public:
         circle.setOutlineThickness(3.0f);
     }
 
-    ObjectType getType() const override { return ObjectType::Sun; }
+    ObjectType getType() const override { return ObjectType::FX; }
 
     void update(float dt) override {
         timer += dt;

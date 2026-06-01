@@ -48,6 +48,7 @@ public:
     //getters
     int getRow() const { return row; }
     int getDamage() const { return damage; }
+    sf::Color getColor() const { return sprite.getColor(); }
 };
 
 #endif
