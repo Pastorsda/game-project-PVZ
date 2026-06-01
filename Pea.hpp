@@ -17,8 +17,6 @@ public:
     Pea(float startX, float startY, int rowNum, const sf::Texture& tex, int dmg = 20, float spd = 350.0f)
         : GameObject(startX, startY, 16.0f, 16.0f), sprite(tex), speed(spd), damage(dmg), row(rowNum) {
 
-        width = 16.0f;
-        height = 16.0f;
         isActive = true;
         
         //pea sprite

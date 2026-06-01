@@ -39,8 +39,10 @@ class Game {
 //assets
     sf::Texture plantTexture;
     sf::Texture zombTexture;
+    sf::Texture fastZombTexture;
+    sf::Texture heavyZombTexture;
     sf::Texture sunflowerTexture;
-    sf::Texture NutTexture;
+    sf::Texture nutTexture;
     sf::Texture cherryTexture;
     sf::Texture peaTexture;
     sf::Texture sunTexture;
@@ -77,6 +79,16 @@ class Game {
     sf::Text pauseButtonText;
     sf::Text pauseMenuText;
 
+    // Info panel
+    sf::RectangleShape infoPanelBackground;
+    sf::Text controlsTitleText;
+    sf::Text controlsBodyText;
+    sf::Text peaCardText;
+    sf::Text sunCardText;
+    sf::Text nutCardText;
+    sf::Text cherryCardText;
+    sf::Text shovelCardText;
+
     sf::Font font;
     sf::Text sunText;
     sf::Text gameOverText;
@@ -110,11 +122,13 @@ class Game {
     //getters
     const sf::Texture& getPlantTexture() const     { return plantTexture; }
     const sf::Texture& getSunflowerTexture() const { return sunflowerTexture; }
-    const sf::Texture& getNutTexture() const       { return NutTexture; }
+    const sf::Texture& getNutTexture() const       { return nutTexture; }
     const sf::Texture& getPeaTexture() const       { return peaTexture; }
     const sf::Texture& getCherryTexture() const    { return cherryTexture; }
     const sf::Texture& getSunTexture() const       { return sunTexture; }
     const sf::Texture& getZombTexture() const      { return zombTexture; }
+    const sf::Texture& getFastZombTexture() const  { return fastZombTexture; }
+    const sf::Texture& getHeavyZombTexture() const { return heavyZombTexture; }
 };
 
 #endif

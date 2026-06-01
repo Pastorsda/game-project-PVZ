@@ -16,12 +16,15 @@
 #include <random>
 #include <algorithm>
 
-Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None), sunText(font), gameOverText(font), pauseButtonText(font), pauseMenuText(font), hordeWarningText(font) {
+Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0f), currentSelection(SelectedPlant::None),
+    sunText(font), gameOverText(font), pauseButtonText(font), pauseMenuText(font), hordeWarningText(font),
+    controlsTitleText(font), controlsBodyText(font),
+    peaCardText(font), sunCardText(font), nutCardText(font), cherryCardText(font), shovelCardText(font) {
     
-    window.create(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "PVZ - test");
+   window.create(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "PVZ - test");
     window.setFramerateLimit(60);
 
-    // Texture loading with fallback
+    // Loading textures
     if (!plantTexture.loadFromFile("textures/peashooter.png")) {
         std::cout << "[WARN] peashooter.png not found. creating placeholder...\n";
         plantTexture = createColorPlaceholder(60, 60, sf::Color::Green);
@@ -32,12 +35,12 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
         sunflowerTexture = createColorPlaceholder(60, 60, sf::Color::Yellow);
     }
 
-    if (!NutTexture.loadFromFile("textures/wallnut.png")) {
+    if (!nutTexture.loadFromFile("textures/wallnut.png")) {
         std::cout << "[WARN] wallnut.png not found. creating placeholder...\n";
-        NutTexture = createColorPlaceholder(60, 60, sf::Color(120, 80, 15));
+        nutTexture = createColorPlaceholder(60, 60, sf::Color(139, 69, 19));
     }
 
-    if (!cherryTexture.loadFromFile("textures/cherry.png")){
+    if (!cherryTexture.loadFromFile("textures/cherry.png")) {
         std::cout << "[WARN] cherry.png not found. creating placeholder...\n";
         cherryTexture = createColorPlaceholder(60, 60, sf::Color::Red);
     }
@@ -47,6 +50,16 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
         zombTexture = createColorPlaceholder(60, 80, sf::Color(139, 69, 19));
     }
 
+    if (!fastZombTexture.loadFromFile("textures/fast_zombie.png")) {
+        std::cout << "[WARN] fast_zombie.png not found. creating placeholder...\n";
+        fastZombTexture = createColorPlaceholder(60, 80, sf::Color::Cyan);
+    }
+
+    if (!heavyZombTexture.loadFromFile("textures/heavy_zombie.png")) {
+        std::cout << "[WARN] heavy_zombie.png not found. creating placeholder...\n";
+        heavyZombTexture = createColorPlaceholder(60, 80, sf::Color::Blue);
+    }
+
     if (!peaTexture.loadFromFile("textures/pea.png")) {
         std::cout << "[WARN] pea.png not found. creating placeholder...\n";
         peaTexture = createColorPlaceholder(16, 16, sf::Color(50, 205, 50));
@@ -54,13 +67,15 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
 
     if (!sunTexture.loadFromFile("textures/sun.png")) {
         std::cout << "[WARN] sun.png not found. creating placeholder...\n";
-        sunTexture = createColorPlaceholder(16, 16, sf::Color(255, 215, 0));
+        sunTexture = createColorPlaceholder(30, 30, sf::Color(255, 215, 0));
     }
 
-    if (!font.openFromFile("C:/Windows/Fonts/arial.ttf")) {
-        std::cout << "[Warn] arial.ttf not found. Sun not visible\n";
+
+    if (!font.openFromFile("fonts/Arial.ttf")) {
+        std::cerr << "[ERROR] Arial.ttf not found\n";
     }
 
+    // Configuration of plant cards
     // peacard on ui
     peaCard.setSize({80.0f, 60.0f});
     peaCard.setPosition({200.0f, 10.0f});
@@ -104,6 +119,7 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
     pauseButton.setOutlineThickness(2.0f);
     pauseButton.setOutlineColor(sf::Color::White);
 
+    // Pause button
     // pause text on button
     pauseButtonText.setFont(font);
     pauseButtonText.setString("PAUSE");
@@ -130,6 +146,7 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
         }
     }
 
+    // Game Over screen
     // Dynamic centering of text
     gameOverText.setFont(font);
     gameOverText.setString("GAME OVER\nPress R to start again");
@@ -140,7 +157,52 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
     float textX = (static_cast<float>(SCREEN_WIDTH) - 500.0f) / 2.0f; // Przybliżona szerokość tekstu
     float textY = (static_cast<float>(SCREEN_HEIGHT) - 100.0f) / 2.0f;
     gameOverText.setPosition({textX, textY});
+
+    sunText.setFont(font);
     sunText.setPosition({10.0f, 85.0f});
+
+    // Descriptions on cards
+    // 1. Peashooter text
+    peaCardText.setFont(font);
+    peaCardText.setString("Pea\n100");
+    peaCardText.setCharacterSize(13);
+    peaCardText.setFillColor(sf::Color::White);
+    peaCardText.setStyle(sf::Text::Style::Bold);
+    peaCardText.setPosition({peaCard.getPosition().x + 25.0f, peaCard.getPosition().y + 15.0f});
+
+    // 2. Sunflower text
+    sunCardText.setFont(font);
+    sunCardText.setString("Sun\n50");
+    sunCardText.setCharacterSize(13);
+    sunCardText.setFillColor(sf::Color::White);
+    sunCardText.setStyle(sf::Text::Style::Bold);
+    sunCardText.setPosition({sunCard.getPosition().x + 25.0f, sunCard.getPosition().y + 15.0f});
+
+    // 3. Wallnut text
+    nutCardText.setFont(font);
+    nutCardText.setString("Nut\n50");
+    nutCardText.setCharacterSize(13);
+    nutCardText.setFillColor(sf::Color::White);
+    nutCardText.setStyle(sf::Text::Style::Bold);
+    nutCardText.setPosition({nutcard.getPosition().x + 25.0f, nutcard.getPosition().y + 15.0f});
+
+    // 4. Cherry text
+    cherryCardText.setFont(font);
+    cherryCardText.setString("Cherry\n150");
+    cherryCardText.setCharacterSize(13);
+    cherryCardText.setFillColor(sf::Color::White);
+    cherryCardText.setStyle(sf::Text::Style::Bold);
+    cherryCardText.setPosition({cherrycard.getPosition().x + 22.0f, cherrycard.getPosition().y + 15.0f});
+
+    // 5. Shovel text
+    shovelCardText.setFont(font);
+    shovelCardText.setString("Shovel");
+    shovelCardText.setCharacterSize(13);
+    shovelCardText.setFillColor(sf::Color::White);
+    shovelCardText.setStyle(sf::Text::Style::Bold);
+    shovelCardText.setPosition({shovelcard.getPosition().x + 18.0f, shovelcard.getPosition().y + 20.0f});
+
+    // Progresion tracker
     //wave visual
         waveProgressBg.setSize({200.0f, 20.0f});
         waveProgressBg.setPosition({static_cast<float>(SCREEN_WIDTH) - 220.0f, static_cast<float>(SCREEN_HEIGHT) - 45.0f});
@@ -157,10 +219,10 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
     hordeWarningText.setString("A HUGE WAVE OF ZOMBIES IS APPROACHING!");
     hordeWarningText.setCharacterSize(36);
     hordeWarningText.setFillColor(sf::Color::Red);
-    hordeWarningText.setStyle(sf::Text::Bold);
+    hordeWarningText.setStyle(sf::Text::Style::Bold);
+
     // Center the text horizontally near the top of the screen
     sf::FloatRect textBounds = hordeWarningText.getLocalBounds();
-
     hordeWarningText.setOrigin({
     textBounds.position.x + textBounds.size.x / 2.0f, 
     textBounds.position.y + textBounds.size.y / 2.0f
@@ -170,6 +232,38 @@ Game::Game() : gen(std::random_device{}()), state(1), sunPool(150), sunTimer(0.0
         static_cast<float>(SCREEN_WIDTH) / 2.0f,
         (static_cast<float>(SCREEN_HEIGHT) / 2.0f) - 50.0f
     });
+
+    // Controlls
+    float panelWidth = 170.0f;
+    float panelHeight = 140.0f;
+    // Centering
+    float panelX = (static_cast<float>(SCREEN_WIDTH) - panelWidth) / 2.0f;
+    float panelY = (static_cast<float>(SCREEN_HEIGHT) - panelHeight) / 1.1f;
+    
+    infoPanelBackground.setSize({panelWidth, panelHeight});
+    infoPanelBackground.setPosition({panelX, panelY});
+    infoPanelBackground.setFillColor(sf::Color(30, 30, 40, 220));
+    infoPanelBackground.setOutlineColor(sf::Color(70, 70, 90));
+    infoPanelBackground.setOutlineThickness(2.0f);
+
+    controlsTitleText.setFont(font);
+    controlsTitleText.setString(L"Controls:");
+    controlsTitleText.setCharacterSize(16);
+    controlsTitleText.setFillColor(sf::Color(255, 215, 0));
+    controlsTitleText.setStyle(sf::Text::Style::Bold);
+    controlsTitleText.setPosition({panelX + 20.0f, panelY + 15.0f});
+
+    controlsBodyText.setFont(font);
+    controlsBodyText.setString(
+        L"LPM - Choose Card\n"
+        L"LPM - Plant on lawn\n"
+        L"Mouse Over Sun to collect\n"
+        L"PPM - Cancel choice\n"
+        L"P - Pause"
+    );
+    controlsBodyText.setCharacterSize(12);
+    controlsBodyText.setFillColor(sf::Color(220, 220, 220));
+    controlsBodyText.setPosition({panelX + 10.0f, panelY + 45.0f});
     
 }
 
@@ -404,7 +498,7 @@ void Game::handleInput() {
                         }
                         // Create wallnut
                         else if (currentSelection == SelectedPlant::Wallnut && sunPool >= 50) {
-                            auto newPlant = std::make_unique<Wallnut>(plantX, plantY, NutTexture, clickedRow);
+                            auto newPlant = std::make_unique<Wallnut>(plantX, plantY, nutTexture, clickedRow);
                             spawnNewObject(std::move(newPlant));
 
                             grid[clickedRow][clickedCol] = true;
@@ -850,6 +944,13 @@ void Game::render() {
     window.draw(cherrycard);
     window.draw(shovelcard);
 
+    // draw text on cards
+    window.draw(peaCardText);
+    window.draw(sunCardText);
+    window.draw(nutCardText);
+    window.draw(cherryCardText);
+    window.draw(shovelCardText);
+
     //draw pause
     window.draw(pauseButton);
     window.draw(pauseButtonText);
@@ -868,8 +969,16 @@ void Game::render() {
     }
     window.draw(sunText);
 
+    // Draw progression
     window.draw(waveProgressBg);
     window.draw(waveProgressBar);
+
+    // Draw info UI
+    if (initialDelayTimer < INITIAL_DELAY_MAX) {
+        window.draw(infoPanelBackground);
+        window.draw(controlsTitleText);
+        window.draw(controlsBodyText);
+    }
 
     // pause text overlay
     if (state == 3) {
