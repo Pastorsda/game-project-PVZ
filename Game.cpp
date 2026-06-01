@@ -279,7 +279,17 @@ void Game::run() {
         if (state == 1) {
             if (initialDelayTimer >= INITIAL_DELAY_MAX) {
                 zombtimer += dt;
-                if (zombtimer >= 6.0f) {
+
+                float baseSpawnInterval = 7.0f;
+
+                float waveDifficultyFactor = currentWave * 0.8f;
+
+                float midWaveAcceleration = zombiesSpawnedInWave * 0.4f;
+
+                float currentSpawnInterval = std::max(1.5f, baseSpawnInterval - waveDifficultyFactor - midWaveAcceleration);
+
+
+                if (zombtimer >= currentSpawnInterval) {
                     spawnZomb();
                     zombtimer = 0.0f;
                 }
