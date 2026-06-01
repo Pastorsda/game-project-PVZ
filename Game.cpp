@@ -9,6 +9,7 @@
 #include "Sunflower.hpp"
 #include "Wallnut.hpp"
 #include "Cherry.hpp"
+#include "ExplosionFX.hpp"
 #include "Sun.hpp"
 #include <iostream>
 #include <random>
@@ -536,6 +537,14 @@ void Game::checkCollis(float dt) {
     for (auto* c : activeCherries) {
         if (c->isReadyToExplode()) {
             std::cout << "[BOOM]\n";
+            
+            float boomX = c->getBounds().position.x + (c->getBounds().size.x / 2.0f);
+            float boomY = c->getBounds().position.y + (c->getBounds().size.y / 2.0f);
+
+            // spawn effect
+            auto fx = std::make_unique<ExplosionFX>(boomX, boomY);
+            spawnNewObject(std::move(fx));
+
             for (auto* z : activeZombs) {
                 //check if in 3x3 radius
                 if (std::abs(z->getRow() - c->getRow()) <= 1) {
