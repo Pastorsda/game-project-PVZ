@@ -24,7 +24,7 @@ class Game {
     sf::Clock clock;
 
     //wave managment
-    int currentWave = 5;
+    int currentWave = 1;
     int totalZombiesInWave = 3;
     int zombiesSpawnedInWave = 0;
     int zombiesKilledInWave = 0;
@@ -35,7 +35,7 @@ class Game {
     float sunTimer = 0.0f;
     float initialDelayTimer = 0.0f;
     // grace timer in seconds
-    inline static const float INITIAL_DELAY_MAX = 0.0f;
+    inline static const float INITIAL_DELAY_MAX = 33.0f;
 //assets
     sf::Texture plantTexture;
     sf::Texture zombTexture;
