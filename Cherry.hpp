@@ -15,6 +15,8 @@ public:
     Cherry(float startX, float startY, const sf::Texture& texture, int rowNum)
         : Plant(startX, startY, texture, rowNum, 300, 150), fuseTimer(1.2f), readyToExplode(false) {
         sprite.setTexture(texture);
+        sprite.setOrigin({10.0f, 7.0f});
+        sprite.setScale({2.0f, 2.0f});
         sprite.setPosition({x, y});
     }
 

@@ -18,6 +18,8 @@ class Sunflower : public Plant {
     public:
     Sunflower(float startX, float startY, const sf::Texture& texture, int rowNum, Game& game)
     : Plant(startX, startY, texture, rowNum, 100, 100), sunTimer(0.0f), gameContext(game) {
+        sprite.setOrigin({8.0f, 6.0f});
+        sprite.setScale({2.0f, 2.0f});
         sprite.setPosition({x, y});
     }
     void update(float dt) override {
