@@ -8,7 +8,7 @@ private:
     std::vector<sf::IntRect> healthFrames;
 public:
     Wallnut(float startX, float startY, const sf::Texture& texture, int rowNum)
-    : Plant(startX, startY, texture, rowNum, 1000, 50) {
+    : Plant(startX, startY, texture, rowNum, 3000, 50) {
 
         healthFrames.push_back(sf::IntRect({0, 0}, {40, 40}));
         healthFrames.push_back(sf::IntRect({40, 0}, {40, 40}));
@@ -30,9 +30,9 @@ public:
     void update(float dt) override {
         // animation for nut breaking
         if (!isActive) return;
-        if (hp > 666) {
+        if (hp > 2000) {
             sprite.setTextureRect(healthFrames[0]);
-        } else if (hp > 333) {
+        } else if (hp > 1000) {
             sprite.setTextureRect(healthFrames[1]);
         } else {
             sprite.setTextureRect(healthFrames[2]);

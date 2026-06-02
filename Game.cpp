@@ -336,8 +336,9 @@ void Game::handleInput() {
                     sunCooldown = 0.0f;
                     nutCooldown = 0.0f;
                     cherryCooldown = 0.0f;
+                    initialDelayTimer = 0.0f;
                     currentWave = 1;
-                    totalZombiesInWave = 5;
+                    totalZombiesInWave = 3;
                     zombiesSpawnedInWave = 0;
                     zombiesKilledInWave = 0;
                     massiveWaveTriggered = false;
@@ -583,7 +584,7 @@ void Game::spawnZomb() {
             newZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
             typeName = "Basic";
         } else {
-            newZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
+            newZomb = std::make_unique<FastZomb>(spawnX, spawnY, fastZombTexture, randomRow);
             typeName = "Fast";
         }
     } 
@@ -593,10 +594,10 @@ void Game::spawnZomb() {
             newZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
             typeName = "Basic";
         } else if (typeRoll > 50 && typeRoll <= 80) {
-            newZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
+            newZomb = std::make_unique<FastZomb>(spawnX, spawnY, fastZombTexture, randomRow);
             typeName = "Fast";
         } else {
-            newZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, zombTexture, randomRow);
+            newZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, heavyZombTexture, randomRow);
             typeName = "Heavy";
         }
     }
@@ -841,16 +842,16 @@ void Game::update(float dt) {
                 if (typeRoll <= 60) {
                     massiveZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
                 } else {
-                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
+                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, fastZombTexture, randomRow);
                 }
             } 
             else { // Wave 5 and beyond
                 if (typeRoll <= 40) {
                     massiveZomb = std::make_unique<BasicZomb>(spawnX, spawnY, zombTexture, randomRow);
                 } else if (typeRoll <= 75) {
-                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, zombTexture, randomRow);
+                    massiveZomb = std::make_unique<FastZomb>(spawnX, spawnY, fastZombTexture, randomRow);
                 } else {
-                    massiveZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, zombTexture, randomRow);
+                    massiveZomb = std::make_unique<HeavyZomb>(spawnX, spawnY, heavyZombTexture, randomRow);
                 }
             }
             

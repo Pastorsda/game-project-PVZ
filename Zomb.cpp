@@ -6,6 +6,16 @@ Zomb::Zomb(float startX, float startY, const sf::Texture& texture, int rowNum, i
     : GameObject(startX, startY), hp(maxHp), dmg(attackDmg), row(rowNum), speed(moveSpeed), isEating(false), damageBuffer(0.0f), sprite(texture)
     {
     sprite.setTexture(texture);
+
+    int w = 85;
+    int h = 95;
+
+    for(int i = 0; i < 8; ++i) moveFrames.push_back(sf::IntRect({i * w, 0}, {w, h}));
+    for(int i = 0; i < 4; ++i) attackFrames.push_back(sf::IntRect({i * w, h}, {w, h}));
+
+    sprite.setTextureRect(moveFrames[0]);
+    sprite.setOrigin({40.0f,30.0f});
+    sprite.setScale({-1.8f, 1.8f});
     // starting position
     sprite.setPosition({x, y});
     }
@@ -17,6 +27,20 @@ void Zomb::update(float dt) {
     if (!isEating) {
         x -= speed * dt;
         sprite.setPosition({x, y});
+    }
+
+    animTimer += dt;
+    if (animTimer >= 0.15f) { // Animation Speed
+        animTimer = 0.0f;
+        currentFrame++;
+
+        if (isEating) {
+            if (currentFrame >= attackFrames.size()) currentFrame = 0;
+            sprite.setTextureRect(attackFrames[currentFrame]);
+        } else {
+            if (currentFrame >= moveFrames.size()) currentFrame = 0;
+            sprite.setTextureRect(moveFrames[currentFrame]);
+        }
     }
 }
 

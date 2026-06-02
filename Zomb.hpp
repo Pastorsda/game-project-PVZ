@@ -12,6 +12,10 @@ protected:
     bool isEating;
     float damageBuffer = 0.0f;
     sf::Sprite sprite;
+    int currentFrame = 0;
+    float animTimer = 0.0f;
+    std::vector<sf::IntRect> moveFrames;
+    std::vector<sf::IntRect> attackFrames;
 
 public:
     // constructor grabs stats from derived class
@@ -19,10 +23,12 @@ public:
     
     virtual ~Zomb() = default;
 
+    void initAnimations(int frameWidth, int frameHeight); 
+    void update(float dt) override;
+
     //override the motode for every zombie
     ObjectType getType() const override { return ObjectType::Zombie; }
 
-    void update(float dt) override;
     void draw(sf::RenderWindow& window) override;
     virtual void eat(Plant& plant, float dt);
     void setEating(bool eating);

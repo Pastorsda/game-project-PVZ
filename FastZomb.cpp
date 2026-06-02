@@ -9,7 +9,7 @@ void FastZomb::eat(Plant& plant, float dt) {
         jumpTimer = 0.0f;
         jumpStartX = this->getX();
 
-        jumpTargetX = jumpStartX - 140.0f;
+        jumpTargetX = jumpStartX - 230.0f;
         hasJumped = true;
         float currentX = this->getX();
         this->setEating(false);
