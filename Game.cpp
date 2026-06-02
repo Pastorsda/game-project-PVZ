@@ -322,7 +322,7 @@ void Game::handleInput() {
         }
 
         // Game end
-        if (state == 2) {
+        if (state == 2 || state == 4) {
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->code == sf::Keyboard::Key::R) {
                     // Reset to start values
@@ -656,7 +656,7 @@ void Game::checkCollis(float dt) {
                 if (std::abs(z->getRow() - c->getRow()) <= 1) {
                 //check distance in pixels
                 float distX = std::abs(z->getX() - c->getX());
-                if (distX <= 180.0f) {
+                if (distX <= 200.0f) {
                     z->takeDamage(200);
                     }
                 }
@@ -865,6 +865,10 @@ void Game::update(float dt) {
     // check if wave is finished
     if (zombiesKilledInWave >= totalZombiesInWave && massiveWaveTriggered) {
         currentWave++;
+        if (currentWave > 7) {
+        state = 4;
+        std::cout << "[GAME] YOU WIN!\n";
+    } else {
         zombiesSpawnedInWave = 0;
         zombiesKilledInWave = 0;
         massiveWaveTriggered = false;
@@ -872,6 +876,7 @@ void Game::update(float dt) {
         //threat scaling every wave +3 zombies
         totalZombiesInWave = 5 + (currentWave * 3);
         std::cout << "[WAVE] Advanced to Wave " << currentWave << "! Target: " << totalZombiesInWave << "\n";
+        }
     }
 }//end of game::update
 
@@ -1007,6 +1012,24 @@ void Game::render() {
         window.draw(overlay);
 
         window.draw(gameOverText);
+    }
+
+
+    if (state == 4) {
+    sf::RectangleShape overlay({static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT)});
+    overlay.setFillColor(sf::Color(0, 0, 0, 200));
+    window.draw(overlay);
+
+    sf::Text winText(font);
+    winText.setString("YOU WIN!\nPress R to play again");
+    winText.setCharacterSize(60);
+    winText.setFillColor(sf::Color::Yellow);
+    
+    sf::FloatRect textRect = winText.getLocalBounds();
+    winText.setOrigin({textRect.size.x / 2.0f, textRect.size.y / 2.0f});
+    winText.setPosition({SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f});
+    
+    window.draw(winText);
     }
 
     window.display();

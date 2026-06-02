@@ -29,6 +29,7 @@ class Game {
     int zombiesSpawnedInWave = 0;
     int zombiesKilledInWave = 0;
     bool massiveWaveTriggered = false;
+    bool isGameWon = false;
 
     int state;
     int sunPool;

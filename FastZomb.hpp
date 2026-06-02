@@ -26,7 +26,7 @@ public:
         : Zomb(startX, startY, texture, rowNum, 65, 85.0f, 20) // HP, Speed, DMG
     {
         sprite.setColor(sf::Color(150, 150, 255));
-        sprite.setOrigin({30.0f,20.0f});
+        sprite.setOrigin({20.0f,20.0f});
         baseRowY = startY;
 
         int w = 100;
