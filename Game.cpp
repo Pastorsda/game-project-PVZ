@@ -656,8 +656,8 @@ void Game::checkCollis(float dt) {
                 if (std::abs(z->getRow() - c->getRow()) <= 1) {
                 //check distance in pixels
                 float distX = std::abs(z->getX() - c->getX());
-                if (distX <= 200.0f) {
-                    z->takeDamage(200);
+                if (distX <= 250.0f) {
+                    z->takeDamage(300);
                     }
                 }
             }
