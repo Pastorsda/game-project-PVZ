@@ -36,7 +36,7 @@ class Peashooter : public Plant {
         if (!isActive) return;
 
         shootTimer += dt;
-        if (shootTimer >= 2.5f) {
+        if (shootTimer >= 1.8f) {
             // attack only when zomb on lane
             if (gameContext.isZombieInRow(row)) {
                 attack();
@@ -49,7 +49,7 @@ class Peashooter : public Plant {
 
     if (isAttacking) {
             animTimer += dt;
-            if (animTimer >= 0.2f) {
+            if (animTimer >= 0.1f) {
                 currentFrame++;
                 if (currentFrame >= 3) {
                     isAttacking = false;

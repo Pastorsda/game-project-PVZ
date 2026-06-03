@@ -21,6 +21,7 @@ public:
         
         //pea sprite
         sprite.setTexture(tex);
+        sprite.setScale({1.5f, 1.5f});
         sprite.setPosition({x, y});
         //centering origin
         sf::FloatRect bounds = sprite.getLocalBounds();
