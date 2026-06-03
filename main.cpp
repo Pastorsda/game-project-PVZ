@@ -10,7 +10,7 @@ int main() {
 //creating instance
         Game game;
 
-        std::cout << "[SYSTEM] Starting game loop";
+        std::cout << "[SYSTEM] Starting game loop\n";
 //turn main loop on
         game.run();
     }
